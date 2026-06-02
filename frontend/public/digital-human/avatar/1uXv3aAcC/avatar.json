@@ -1,0 +1,102 @@
+{
+    "icon_url": "https://avatarx-v3-resource.faceunity.com/resources/icon/7304709c-579b-4ed1-a3aa-f7883b06200c.png",
+    "icon_full_url": "https://avatarx-v3-resource.faceunity.com/resources/icon/7920eb0d-722d-48c6-a733-e3cbcaacbe28.png",
+    "avatar_id": "1uXv3aAcC",
+    "data": {
+        "name": "hGkXsPkK",
+        "style": "Common",
+        "gender": "male",
+        "color_list": [
+            {
+                "name": "beard_color",
+                "color": [
+                    118,
+                    62,
+                    38,
+                    255
+                ]
+            },
+            {
+                "name": "eyebrow_color",
+                "color": [
+                    115,
+                    70,
+                    53,
+                    255
+                ]
+            },
+            {
+                "name": "hair_color",
+                "color": [
+                    115,
+                    70,
+                    53,
+                    255
+                ]
+            },
+            {
+                "name": "iris_color",
+                "color": [
+                    105,
+                    66,
+                    45,
+                    255
+                ]
+            },
+            {
+                "name": "makeup_lip_color",
+                "color": [
+                    219,
+                    149,
+                    135,
+                    255
+                ]
+            },
+            {
+                "name": "skin_color",
+                "color": [
+                    245,
+                    202,
+                    168,
+                    255
+                ]
+            }
+        ],
+        "bundle_list": [
+            "avatar/1uXv3aAcC/BaseModelAmale_head.bundle",
+            "avatar/1uXv3aAcC/BaseModelAmale_body.bundle",
+            "avatar/1uXv3aAcC/glasses_none.bundle",
+            "avatar/1uXv3aAcC/eye201a.bundle",
+            "avatar/1uXv3aAcC/nose201b.bundle",
+            "avatar/1uXv3aAcC/shirt005.bundle",
+            "avatar/1uXv3aAcC/eyeshadow_none.bundle",
+            "avatar/1uXv3aAcC/beard_none.bundle",
+            "avatar/1uXv3aAcC/mouth203b.bundle",
+            "avatar/1uXv3aAcC/eyelash_none.bundle",
+            "avatar/1uXv3aAcC/brow306c.bundle",
+            "avatar/1uXv3aAcC/hair011.bundle",
+            "avatar/1uXv3aAcC/face201a.bundle",
+            "avatar/1uXv3aAcC/pupil001_none.bundle",
+            "avatar/1uXv3aAcC/blush_none.bundle",
+            "avatar/1uXv3aAcC/earring_none.bundle",
+            "avatar/1uXv3aAcC/trousers013.bundle",
+            "avatar/1uXv3aAcC/shoes015.bundle"
+        ],
+        "texture_list": [],
+        "facepup_config": {
+            "bones": [],
+            "blendshapes": [],
+            "bone_controllers": [
+                {
+                    "name": "L_brow_jnt_tyNeg",
+                    "value": 0.24941486120224
+                },
+                {
+                    "name": "R_brow_jnt_tyNeg",
+                    "value": 0.24941486120224
+                }
+            ]
+        },
+        "gradient_color_medium": []
+    }
+}

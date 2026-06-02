@@ -1,0 +1,32 @@
+{
+    "style": "style/1uXv3aAcC",
+    "camera": "camera/cam_ptag_h5.bundle",
+    "light": "light/light_man_without_lut.bundle",
+    "bundles": [
+        "avatar/1uXv3aAcC/BaseModelAmale_head.bundle",
+        "avatar/1uXv3aAcC/BaseModelAmale_body.bundle",
+        "avatar/1uXv3aAcC/glasses_none.bundle",
+        "avatar/1uXv3aAcC/eye201a.bundle",
+        "avatar/1uXv3aAcC/nose201b.bundle",
+        "avatar/1uXv3aAcC/shirt005.bundle",
+        "avatar/1uXv3aAcC/eyeshadow_none.bundle",
+        "avatar/1uXv3aAcC/beard_none.bundle",
+        "avatar/1uXv3aAcC/mouth203b.bundle",
+        "avatar/1uXv3aAcC/eyelash_none.bundle",
+        "avatar/1uXv3aAcC/brow306c.bundle",
+        "avatar/1uXv3aAcC/hair011.bundle",
+        "avatar/1uXv3aAcC/face201a.bundle",
+        "avatar/1uXv3aAcC/pupil001_none.bundle",
+        "avatar/1uXv3aAcC/blush_none.bundle",
+        "avatar/1uXv3aAcC/earring_none.bundle",
+        "avatar/1uXv3aAcC/trousers013.bundle",
+        "avatar/1uXv3aAcC/shoes015.bundle"
+    ],
+    "animations": [
+        "avatar/1uXv3aAcC/ani_ptag_amale_huxi.bundle",
+        "avatar/1uXv3aAcC/ani_AvatarX_amale_danshouzhanshi.bundle",
+        "avatar/1uXv3aAcC/ani_ptag_amale_jiaotan1.bundle",
+        "avatar/1uXv3aAcC/ani_ptag_amale_jiaotan2.bundle",
+        "avatar/1uXv3aAcC/ani_ptag_amale_jiaotan3.bundle"
+    ]
+}

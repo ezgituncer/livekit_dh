@@ -1,0 +1,5 @@
+.rsync-ignore
+.env
+CLAUDE.local.md
+sync-remote.sh
+dry-sync-remote.sh
