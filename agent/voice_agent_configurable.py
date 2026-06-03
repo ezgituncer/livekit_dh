@@ -37,7 +37,11 @@ DEFAULT_TTS = "elevenlabs-multilingual-v2"
 DEFAULT_DETECTOR = "multilingual"
 
 
-server = AgentServer()
+# Loading the prewarm models (silero VAD, smart-turn ONNX, Whisper feature
+# extractor) can take well over the 10s default on a cold / CPU-only container,
+# which makes the agent join the room but never finish initializing ("Session
+# ended: Agent joined the room but did not complete initializing"). Give it room.
+server = AgentServer(initialize_process_timeout=60)
 server.setup_fnc = prewarm
 
 

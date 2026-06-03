@@ -28,15 +28,16 @@ const ShimmerComponent = ({
       animate={{ backgroundPosition: '0% center' }}
       className={cn(
         'relative inline-block bg-[length:250%_100%,auto] bg-clip-text text-transparent',
-        '[background-repeat:no-repeat,padding-box] [--bg:linear-gradient(90deg,#0000_calc(50%-var(--spread)),var(--color-background),#0000_calc(50%+var(--spread)))]',
+        // Bright cyan-white scan band sweeping across a dim cyan base — a HUD "scanning" feel.
+        '[background-repeat:no-repeat,padding-box] [--bg:linear-gradient(90deg,#0000_calc(50%-var(--spread)),#eafdff,#0000_calc(50%+var(--spread)))]',
+        'drop-shadow-[0_0_10px_rgba(0,229,255,0.55)]',
         className
       )}
       initial={{ backgroundPosition: '100% center' }}
       style={
         {
           '--spread': `${dynamicSpread}px`,
-          backgroundImage:
-            'var(--bg), linear-gradient(var(--color-muted-foreground), var(--color-muted-foreground))',
+          backgroundImage: 'var(--bg), linear-gradient(rgba(124,247,255,0.5), rgba(124,247,255,0.5))',
         } as CSSProperties
       }
       transition={{

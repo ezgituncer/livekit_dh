@@ -17,17 +17,19 @@ import {
 import { cn } from '@/lib/shadcn/utils';
 
 // Shared look for the welcome-screen fields (selects + voice input):
-// translucent dark fill, inner blue glow, white text, no border.
+// glass fill with a cyan inner edge, purple focus ring, neon-white text.
 const FIELD_CLASS =
-  'border-0 text-white bg-[rgba(0,0,0,0.58)] dark:bg-[rgba(0,0,0,0.58)] shadow-[0_0_10px_-3.6px_#3ec5ff_inset]';
+  'glass-panel border-0 text-white transition-shadow duration-300 hover:shadow-[inset_0_0_22px_-8px_#00e5ff,0_0_22px_-6px_#b026ff] focus-within:shadow-[inset_0_0_22px_-6px_#b026ff,0_0_26px_-4px_#00e5ff]';
 
-// Field labels — light enough to read clearly over the dark-blue background.
-const LABEL_CLASS = 'text-left text-xs font-semibold tracking-wide text-white/85';
+// Field labels — cyan, uppercase, wide tracking for a HUD feel.
+const LABEL_CLASS =
+  'text-left font-mono text-[10px] font-semibold tracking-[0.18em] text-[#7cf7ff]/80 uppercase';
 
-// Matching dark/blue dropdown panel and items.
-const DROPDOWN_CLASS = 'border-[#3ec5ff]/20 bg-[rgba(0,0,0,0.85)] text-white backdrop-blur-sm';
+// Matching dark/neon dropdown panel and items.
+const DROPDOWN_CLASS =
+  'border-[#00e5ff]/25 bg-[rgba(11,9,24,0.92)] text-white backdrop-blur-md shadow-[0_0_30px_-10px_#b026ff]';
 const DROPDOWN_ITEM_CLASS =
-  'text-white/90 focus:bg-[#3ec5ff]/20 focus:text-white data-[state=checked]:text-[#3ec5ff]';
+  'text-white/90 focus:bg-[#00e5ff]/15 focus:text-white data-[state=checked]:text-[#00e5ff]';
 
 function WelcomeImage() {
   return (
@@ -37,7 +39,7 @@ function WelcomeImage() {
       viewBox="0 0 64 64"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="text-fg0 mb-4 size-16"
+      className="mb-4 size-16 text-[#00e5ff] drop-shadow-[0_0_18px_rgba(0,229,255,0.7)]"
     >
       <path
         d="M15 24V40C15 40.7957 14.6839 41.5587 14.1213 42.1213C13.5587 42.6839 12.7956 43 12 43C11.2044 43 10.4413 42.6839 9.87868 42.1213C9.31607 41.5587 9 40.7957 9 40V24C9 23.2044 9.31607 22.4413 9.87868 21.8787C10.4413 21.3161 11.2044 21 12 21C12.7956 21 13.5587 21.3161 14.1213 21.8787C14.6839 22.4413 15 23.2044 15 24ZM22 5C21.2044 5 20.4413 5.31607 19.8787 5.87868C19.3161 6.44129 19 7.20435 19 8V56C19 56.7957 19.3161 57.5587 19.8787 58.1213C20.4413 58.6839 21.2044 59 22 59C22.7956 59 23.5587 58.6839 24.1213 58.1213C24.6839 57.5587 25 56.7957 25 56V8C25 7.20435 24.6839 6.44129 24.1213 5.87868C23.5587 5.31607 22.7956 5 22 5ZM32 13C31.2044 13 30.4413 13.3161 29.8787 13.8787C29.3161 14.4413 29 15.2044 29 16V48C29 48.7957 29.3161 49.5587 29.8787 50.1213C30.4413 50.6839 31.2044 51 32 51C32.7956 51 33.5587 50.6839 34.1213 50.1213C34.6839 49.5587 35 48.7957 35 48V16C35 15.2044 34.6839 14.4413 34.1213 13.8787C33.5587 13.3161 32.7956 13 32 13ZM42 21C41.2043 21 40.4413 21.3161 39.8787 21.8787C39.3161 22.4413 39 23.2044 39 24V40C39 40.7957 39.3161 41.5587 39.8787 42.1213C40.4413 42.6839 41.2043 43 42 43C42.7957 43 43.5587 42.6839 44.1213 42.1213C44.6839 41.5587 45 40.7957 45 40V24C45 23.2044 44.6839 22.4413 44.1213 21.8787C43.5587 21.3161 42.7957 21 42 21ZM52 17C51.2043 17 50.4413 17.3161 49.8787 17.8787C49.3161 18.4413 49 19.2044 49 20V44C49 44.7957 49.3161 45.5587 49.8787 46.1213C50.4413 46.6839 51.2043 47 52 47C52.7957 47 53.5587 46.6839 54.1213 46.1213C54.6839 45.5587 55 44.7957 55 44V20C55 19.2044 54.6839 18.4413 54.1213 17.8787C53.5587 17.3161 52.7957 17 52 17Z"
@@ -106,10 +108,10 @@ export const WelcomeView = ({
 
   return (
     <div ref={ref}>
-      <section className="flex flex-col items-center justify-center text-center">
+      <section className="fade-in-up flex flex-col items-center justify-center text-center">
         <WelcomeImage />
 
-        <p className="text-foreground max-w-prose pt-1 leading-6 font-medium">
+        <p className="neon-text max-w-prose pt-1 text-lg leading-6 font-semibold tracking-wide text-white">
           Chat live with your voice AI agent
         </p>
 
@@ -187,27 +189,28 @@ export const WelcomeView = ({
         />
 
         <div
-          className="mt-6 w-64"
+          className={cn(
+            'mt-7 w-64 rounded-[15px] p-0.5 transition-all duration-300',
+            !disabled && 'glow-pulse'
+          )}
           style={{
             background:
-              'linear-gradient(127deg, rgb(0, 209, 255) 5.33%, rgba(35, 16, 19, 0.55) 103.78%)',
-            padding: '2px',
-            borderRadius: '15px',
+              'linear-gradient(127deg, #00e5ff 0%, #b026ff 55%, #ff3cac 110%)',
           }}
         >
           <Button
             size="lg"
             onClick={onStartCall}
             disabled={disabled}
-            className="h-[60px] w-full rounded-[13px] border-0 bg-[rgb(20,46,68)] font-mono text-xs font-bold tracking-wider text-[#00d1ff] uppercase shadow-none hover:bg-[rgb(26,56,82)] disabled:opacity-50"
+            className="group h-[60px] w-full rounded-[13px] border-0 bg-[rgba(11,9,24,0.85)] font-mono text-xs font-bold tracking-[0.22em] text-[#7cf7ff] uppercase shadow-none transition-colors hover:bg-[rgba(24,18,43,0.85)] hover:text-white disabled:opacity-50"
           >
-            {startButtonText}
+            <span className="neon-text">{startButtonText}</span>
           </Button>
         </div>
 
         <Link
           href="/advanced"
-          className="text-muted-foreground hover:text-foreground mt-4 text-xs underline underline-offset-4"
+          className="mt-4 text-xs text-[#9c9ac4] underline underline-offset-4 transition-colors hover:text-[#00e5ff]"
         >
           Advanced Settings
         </Link>

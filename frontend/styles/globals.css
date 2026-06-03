@@ -39,38 +39,45 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* ── Cyberpunk neon theme (cyan + purple) ──────────────────────────── */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.269 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.371 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.439 0 0);
+  /* Raw neon tokens — reused by utilities below. */
+  --neon-cyan: #00e5ff;
+  --neon-blue: #2d6bff;
+  --neon-purple: #b026ff;
+  --neon-magenta: #ff3cac;
+
+  --background: #07060f;
+  --foreground: #ede9ff;
+  --card: #0e0b1c;
+  --card-foreground: #ede9ff;
+  --popover: #0b0918;
+  --popover-foreground: #ede9ff;
+  --primary: #00e5ff;
+  --primary-foreground: #04060b;
+  --secondary: #18122b;
+  --secondary-foreground: #ede9ff;
+  --muted: #141029;
+  --muted-foreground: #9c9ac4;
+  --accent: #b026ff;
+  --accent-foreground: #ffffff;
+  --destructive: #ff2d55;
+  --border: rgba(0, 229, 255, 0.16);
+  --input: rgba(176, 38, 255, 0.18);
+  --ring: #00e5ff;
+  --chart-1: #00e5ff;
+  --chart-2: #b026ff;
+  --chart-3: #ff3cac;
+  --chart-4: #2d6bff;
+  --chart-5: #7cf7ff;
+  --sidebar: #0b0918;
+  --sidebar-foreground: #ede9ff;
+  --sidebar-primary: #00e5ff;
+  --sidebar-primary-foreground: #04060b;
+  --sidebar-accent: #b026ff;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(0, 229, 255, 0.16);
+  --sidebar-ring: #00e5ff;
 }
 
 @theme inline {
@@ -120,10 +127,143 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-image: url('/bg_blue.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
+    background-color: #07060f;
+    position: relative;
+  }
+
+  /* Drifting aurora glow — cyan + purple + magenta blobs. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: -10%;
+    z-index: -2;
+    background:
+      radial-gradient(38% 48% at 18% 18%, rgba(0, 229, 255, 0.25), transparent 70%),
+      radial-gradient(44% 52% at 82% 24%, rgba(176, 38, 255, 0.26), transparent 72%),
+      radial-gradient(52% 50% at 50% 92%, rgba(255, 60, 172, 0.16), transparent 72%);
+    filter: blur(36px) saturate(135%);
+    animation: aurora-drift 22s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+
+  /* Faint HUD grid that slowly pans, faded toward the edges. */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-image:
+      linear-gradient(rgba(0, 229, 255, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(176, 38, 255, 0.06) 1px, transparent 1px);
+    background-size: 46px 46px;
+    -webkit-mask-image: radial-gradient(circle at 50% 38%, #000 0%, transparent 78%);
+    mask-image: radial-gradient(circle at 50% 38%, #000 0%, transparent 78%);
+    animation: grid-pan 24s linear infinite;
+  }
+}
+
+/* ── Futuristic animation toolkit ──────────────────────────────────── */
+@keyframes aurora-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(2.5%, -2%, 0) scale(1.12) rotate(1.5deg);
+  }
+  100% {
+    transform: translate3d(-2.5%, 2%, 0) scale(1.06) rotate(-1.5deg);
+  }
+}
+
+@keyframes grid-pan {
+  to {
+    background-position:
+      46px 46px,
+      46px 46px;
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 18px -8px var(--neon-cyan),
+      0 0 26px -10px var(--neon-purple);
+  }
+  50% {
+    box-shadow:
+      0 0 34px -4px var(--neon-cyan),
+      0 0 48px -6px var(--neon-purple);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes neon-sweep {
+  to {
+    background-position: 200% center;
+  }
+}
+
+@layer components {
+  /* Glass field/panel with a cyan inner edge and a soft purple drop glow. */
+  .glass-panel {
+    background: rgba(11, 9, 24, 0.62);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(0, 229, 255, 0.18);
+    box-shadow:
+      inset 0 0 18px -10px var(--neon-cyan),
+      0 12px 48px -16px rgba(0, 229, 255, 0.3),
+      0 0 0 1px rgba(176, 38, 255, 0.05);
+  }
+
+  /* Neon text — cyan core with a purple halo. */
+  .neon-text {
+    text-shadow:
+      0 0 12px rgba(0, 229, 255, 0.55),
+      0 0 28px rgba(176, 38, 255, 0.4);
+  }
+
+  .fade-in-up {
+    animation: fade-in-up 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .glow-pulse {
+    animation: glow-pulse 3.2s ease-in-out infinite;
+  }
+
+  /* A neon gradient "border" that slowly sweeps. Use on a wrapper with `p-px`
+     (or p-0.5) and put the real content in an opaque child — the gradient shows
+     only in the padding gap. */
+  .animated-border {
+    background-image: linear-gradient(
+      110deg,
+      #00e5ff 0%,
+      #b026ff 35%,
+      #ff3cac 55%,
+      #00e5ff 100%
+    );
+    background-size: 200% auto;
+    animation: neon-sweep 5s linear infinite;
+  }
+}
+
+/* Respect users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  body::after,
+  .fade-in-up,
+  .glow-pulse {
+    animation: none !important;
   }
 }

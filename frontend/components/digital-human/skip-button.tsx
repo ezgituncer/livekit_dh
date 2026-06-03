@@ -39,16 +39,15 @@ export function SkipButton({ className }: { className?: string }) {
       onClick={onSkip}
       disabled={busy}
       aria-label="Skip"
+      title="Skip"
       className={cn(
-        'flex h-9 items-center gap-1.5 rounded-full px-4 font-mono text-xs font-bold tracking-wider uppercase',
-        'border border-[#3ec5ff]/40 bg-[rgba(0,0,0,0.55)] text-[#3ec5ff]',
-        'shadow-[0_0_10px_-3.6px_#3ec5ff_inset] transition-colors hover:bg-[#3ec5ff]/15',
+        'flex size-9 shrink-0 items-center justify-center rounded-full text-[#00e5ff]',
+        'transition-colors hover:bg-[#00e5ff]/15 hover:text-[#7cf7ff]',
         'disabled:cursor-not-allowed disabled:opacity-50',
         className
       )}
     >
-      <SkipForwardIcon className="size-3.5" />
-      Skip
+      <SkipForwardIcon className="size-[18px]" />
     </button>
   );
 }
