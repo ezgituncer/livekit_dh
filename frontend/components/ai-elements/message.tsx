@@ -30,9 +30,14 @@ export type MessageContentProps = HTMLAttributes<HTMLDivElement>;
 export const MessageContent = ({ children, className, ...props }: MessageContentProps) => (
   <div
     className={cn(
-      'is-user:dark flex w-fit max-w-full min-w-0 flex-col gap-2 overflow-hidden text-sm',
-      'group-[.is-user]:bg-secondary group-[.is-user]:text-foreground group-[.is-user]:ml-auto group-[.is-user]:rounded-lg group-[.is-user]:px-4 group-[.is-user]:py-3',
-      'group-[.is-assistant]:text-foreground',
+      // Modern glass speech bubble — both roles get a tinted, blurred bubble.
+      'flex w-fit max-w-full min-w-0 flex-col gap-2 overflow-hidden rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-[0_8px_24px_rgba(0,0,0,0.28)] backdrop-blur-md',
+      // Match the welcome headline typeface (Chakra Petch) for the transcript.
+      'font-chakra tracking-[0.01em]',
+      // Assistant (AI) — aqua glass, tail on the top-left.
+      'group-[.is-assistant]:rounded-tl-sm group-[.is-assistant]:border group-[.is-assistant]:border-[#2fe6c0]/30 group-[.is-assistant]:bg-[#2fe6c0]/12 group-[.is-assistant]:text-[#ecfffb]',
+      // User — brighter mint glass pushed to the right, tail on the top-right.
+      'group-[.is-user]:ml-auto group-[.is-user]:rounded-tr-sm group-[.is-user]:border group-[.is-user]:border-[rgba(94,234,212,0.22)] group-[.is-user]:bg-[#7dffe0]/10 group-[.is-user]:text-[#dafff7]',
       className
     )}
     {...props}
@@ -263,7 +268,10 @@ export type MessageResponseProps = ComponentProps<typeof Streamdown>;
 export const MessageResponse = memo(
   ({ className, ...props }: MessageResponseProps) => (
     <Streamdown
-      className={cn('size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0', className)}
+      className={cn(
+        'font-chakra size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0',
+        className
+      )}
       {...props}
     />
   ),

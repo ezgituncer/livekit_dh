@@ -8,9 +8,9 @@ import {
   useTracks,
   useVoiceAssistant,
 } from '@livekit/components-react';
-import { cn } from '@/lib/shadcn/utils';
 import { AvatarCanvas } from '@/components/digital-human/avatar-canvas';
 import { AvatarLipSync } from '@/components/digital-human/avatar-lip-sync';
+import { cn } from '@/lib/shadcn/utils';
 import { AudioVisualizer } from './audio-visualizer';
 
 // Render the FaceUnity 3D digital human in place of the audio visualizer when

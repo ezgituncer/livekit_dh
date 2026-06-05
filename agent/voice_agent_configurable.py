@@ -13,6 +13,8 @@ from livekit.agents import (
 from livekit.agents.voice.room_io import AudioInputOptions, RoomOptions
 from livekit.plugins import openai
 from livekit import rtc
+from openai.types.realtime import AudioTranscription
+from qwen_realtime.realtime_model import RealtimeModel as QwenRealtimeModel
 
 from registry import (
     AudioBuffer,
@@ -182,17 +184,18 @@ async def entrypoint(ctx: JobContext):
         turn_handling_kwargs["endpointing"] = endpointing
 
     session = AgentSession(
-        stt=stt,
-        llm=openai.LLM(
-            model=os.getenv("MODEL_NAME"),
-            base_url=os.getenv("BASE_URL"),
-            api_key=os.getenv("API_KEY"),
+        llm=QwenRealtimeModel(
+            model='qwen3.5-omni-flash-realtime',
+            base_url="wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime",
+            api_key="sk-ed9a5abfecde43a7a07005bf3400e2ff",
+            voice="Ethan",  # erkek ses (alternatif: "Aiden")
+            # Sabit dil ipucu ver: aksi halde ASR oto-algı ile gürültüde Çince
+            # dolgu sözcüğü ("嗯") üretiyor. Oturumda seçilen dili, yoksa "en".
+            input_audio_transcription=AudioTranscription(
+                model="gummy-realtime-v1",
+                language=language or "en",
+            ),
         ),
-        tts=tts,
-        vad=ctx.proc.userdata["vad"],
-        preemptive_generation=False,
-        turn_handling=TurnHandlingOptions(**turn_handling_kwargs),
-        tts_text_transforms=["filter_emoji", "filter_markdown"],
     )
 
     if audio_buffer is not None:

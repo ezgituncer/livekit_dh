@@ -13,6 +13,10 @@ const AVATAR_URL = `${RES_URL}/avatar`;
 // Render one frame at most every ~16ms (≈60fps).
 const FRAME_INTERVAL_MS = 16;
 
+// Amplifies the FaceUnity English viseme intensity (mouth opens wider). 1.0 is the
+// SDK default; the stock visemes read as too closed, so we drive it harder.
+const EN_VISEME_INTENSITY = 1.6;
+
 function uniq<T>(arr: T[]): T[] {
   return Array.from(new Set(arr));
 }
@@ -47,6 +51,18 @@ export interface AvatarSingleton {
   openness: number;
   /** Vowel shape from audio spectrum: 0 = rounded (oo), 0.5 = open (ah), 1 = wide (ee). */
   shape: number;
+  /** 0 = vowel, 1 = sibilant/fricative (s, ş, f) — biases toward the teeth viseme. */
+  sibilance: number;
+  /**
+   * 'acoustic' = mouth shape derived from audio spectrum (default, language-agnostic).
+   * 'phoneme'  = mouth shape comes from the FaceUnity text→viseme timeline fed from
+   * the agent transcript; amplitude is still gated by real audio (`gate`).
+   */
+  lipMode: 'acoustic' | 'phoneme';
+  /** Playback clock (seconds, from audio onset) used to sample the phoneme timeline. */
+  phonemeClock: number;
+  /** 0..1 amplitude gate from real audio — keeps phoneme visemes silent when no sound. */
+  gate: number;
   lipSyncEnabled: boolean;
   /** Whether talking gesture animations are currently looping. */
   gesturing: boolean;
@@ -61,6 +77,7 @@ interface LipTemplates {
   open: Float32Array; //   "AA"   — neutral open jaw
   wide: Float32Array; //   "IY"   — front vowel, mouth widened
   round: Float32Array; //  "UW"   — rounded/puckered lips
+  teeth: Float32Array; //  "S"    — sibilant/fricative, near-closed with teeth
   scratch: Float32Array;
 }
 let lipTemplates: LipTemplates | null = null;
@@ -240,6 +257,10 @@ export function getAvatarSingleton(): AvatarSingleton {
     listeners: new Set(),
     openness: 0,
     shape: 0.5,
+    sibilance: 0,
+    lipMode: 'acoustic',
+    phonemeClock: 0,
+    gate: 0,
     lipSyncEnabled: false,
     gesturing: false,
   };
@@ -282,7 +303,16 @@ function buildLipTemplates(ep: any): LipTemplates | null {
     const open = capture('AA');
     const wide = capture('IY');
     const round = capture('UW');
-    return { closed, open, wide, round, scratch: new Float32Array(open.length) };
+    // Sibilant/fricative viseme (teeth nearly together). Captured separately so an
+    // unsupported phoneme degrades gracefully to the front-vowel shape instead of
+    // disabling lip-sync entirely.
+    let teeth: Float32Array;
+    try {
+      teeth = capture('S');
+    } catch {
+      teeth = clone(wide);
+    }
+    return { closed, open, wide, round, teeth, scratch: new Float32Array(open.length) };
   } catch (e) {
     console.warn('[avatar] could not build lip templates:', e);
     return null;
@@ -299,15 +329,47 @@ export function enableLipSync(): boolean {
   if (!lipTemplates) return false;
 
   const { avatar } = s.runtime;
-  const { closed, open, wide, round, scratch } = lipTemplates;
+  const ep = s.runtime.expressionParser;
+  const { closed, open, wide, round, teeth, scratch } = lipTemplates;
 
   avatar.enableMouthBlendShape(true);
+  // Drive the English visemes harder — the stock intensity looks too closed.
+  try {
+    ep?.changeENIntensity?.(EN_VISEME_INTENSITY);
+  } catch {
+    /* best-effort — intensity tuning is non-fatal */
+  }
   // The SDK invokes this each frame at the correct point in its pipeline.
-  // 1) pick the vowel shape by blending round→open→wide using `shape`
-  // 2) interpolate from the closed mouth toward that vowel by `openness`
   avatar.setExpUpdateFunc(() => {
+    // --- Phoneme mode: sample the real text→viseme timeline, gated by audio. ---
+    if (s.lipMode === 'phoneme' && ep) {
+      let expr: Float32Array | null = null;
+      try {
+        // streamType 1 = text timestamp (FaceUnity does text→phoneme→viseme).
+        expr = ep.getExpressionByTime(s.phonemeClock, 1);
+      } catch {
+        expr = null;
+      }
+      if (expr && expr.length === scratch.length) {
+        const g = s.gate;
+        for (let i = 0; i < scratch.length; i++) {
+          // Interpolate closed→viseme by the audio gate so the mouth only moves
+          // while real sound is playing (prevents drift / talking in silence).
+          scratch[i] = closed[i] + (expr[i] - closed[i]) * g;
+        }
+        avatar.setMouthBlendShape(scratch);
+        return;
+      }
+      // No viseme available → fall through to the acoustic blend below.
+    }
+
+    // --- Acoustic mode (default / fallback): ---
+    // 1) pick the vowel shape by blending round→open→wide using `shape`
+    // 2) bias that toward the teeth/sibilant viseme by `sibilance`
+    // 3) interpolate from the closed mouth toward that target by `openness`
     const o = s.openness;
     const sh = s.shape;
+    const sib = s.sibilance;
     for (let i = 0; i < scratch.length; i++) {
       let vowel: number;
       if (sh < 0.5) {
@@ -315,7 +377,8 @@ export function enableLipSync(): boolean {
       } else {
         vowel = open[i] + (wide[i] - open[i]) * ((sh - 0.5) / 0.5);
       }
-      scratch[i] = closed[i] + (vowel - closed[i]) * o;
+      const target = vowel + (teeth[i] - vowel) * sib;
+      scratch[i] = closed[i] + (target - closed[i]) * o;
     }
     avatar.setMouthBlendShape(scratch);
   });
@@ -335,12 +398,91 @@ export function setMouthShape(value: number): void {
   singleton.shape = value < 0 ? 0 : value > 1 ? 1 : value;
 }
 
+/** Set current sibilance (0 = vowel, 1 = fricative/teeth). Cheap; per-frame safe. */
+export function setMouthSibilance(value: number): void {
+  if (!singleton) return;
+  singleton.sibilance = value < 0 ? 0 : value > 1 ? 1 : value;
+}
+
+// --- Phoneme (text→viseme) lip-sync controls ------------------------------
+
+/** Switch between 'acoustic' (audio spectrum) and 'phoneme' (transcript) lip-sync. */
+export function setLipMode(mode: 'acoustic' | 'phoneme'): void {
+  if (!singleton) return;
+  singleton.lipMode = mode;
+}
+
+/**
+ * Append a transcript segment to the FaceUnity viseme timeline. `start`/`end` are
+ * in seconds on the same clock used by {@link setPhonemeClock}. Safe no-op if the
+ * expression parser is unavailable.
+ */
+export function feedPhoneme(start: number, end: number, text: string): boolean {
+  const ep = singleton?.runtime?.expressionParser;
+  if (!ep || !text) return false;
+  try {
+    ep.feed(`${start.toFixed(3)} ${end.toFixed(3)} ${text}\n`);
+    return true;
+  } catch (e) {
+    console.warn('[avatar] feedPhoneme failed:', e);
+    return false;
+  }
+}
+
+/** Advance the phoneme playback clock (seconds, monotonic within an utterance). */
+export function setPhonemeClock(seconds: number): void {
+  if (!singleton) return;
+  singleton.phonemeClock = seconds;
+}
+
+/** Set the audio amplitude gate (0..1) applied to phoneme visemes. */
+export function setPhonemeGate(value: number): void {
+  if (!singleton) return;
+  singleton.gate = value < 0 ? 0 : value > 1 ? 1 : value;
+}
+
+/** Clear the phoneme timeline (call at utterance boundaries / on interrupt). */
+export function resetPhonemes(): void {
+  const s = singleton;
+  if (!s) return;
+  s.phonemeClock = 0;
+  s.gate = 0;
+  try {
+    s.runtime?.expressionParser?.interrupt();
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * Clear ONLY the FaceUnity viseme timeline (not the clock/gate). Used to re-feed a
+ * growing transcript as a single segment so the SDK's batched-flush quirk (which
+ * collapses multiple queued segments to the first one's end time and then goes
+ * blank) can't freeze the mouth mid-utterance.
+ */
+export function resetPhonemeTimeline(): void {
+  try {
+    singleton?.runtime?.expressionParser?.interrupt();
+  } catch {
+    /* ignore */
+  }
+}
+
 /** Stop lip-sync and return the mouth to the animation-driven resting state. */
 export function disableLipSync(): void {
   const s = singleton;
   if (!s?.runtime?.avatar) return;
   s.openness = 0;
   s.shape = 0.5;
+  s.sibilance = 0;
+  s.lipMode = 'acoustic';
+  s.phonemeClock = 0;
+  s.gate = 0;
+  try {
+    s.runtime.expressionParser?.interrupt();
+  } catch {
+    /* ignore */
+  }
   try {
     s.runtime.avatar.clearExpUpdateFunc();
     s.runtime.avatar.enableMouthBlendShape(false);
@@ -401,6 +543,13 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
     enableLipSync,
     setMouthOpenness,
     setMouthShape,
+    setMouthSibilance,
+    setLipMode,
+    feedPhoneme,
+    setPhonemeClock,
+    setPhonemeGate,
+    resetPhonemes,
+    resetPhonemeTimeline,
     disableLipSync,
     startGesturing,
     stopGesturing,

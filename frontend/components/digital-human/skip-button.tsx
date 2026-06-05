@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRoomContext, useVoiceAssistant } from '@livekit/components-react';
 import { SkipForwardIcon } from 'lucide-react';
+import { useRoomContext, useVoiceAssistant } from '@livekit/components-react';
 import { cn } from '@/lib/shadcn/utils';
 
 /**
@@ -41,8 +41,8 @@ export function SkipButton({ className }: { className?: string }) {
       aria-label="Skip"
       className={cn(
         'flex h-9 items-center gap-1.5 rounded-full px-4 font-mono text-xs font-bold tracking-wider uppercase',
-        'border border-[#3ec5ff]/40 bg-[rgba(0,0,0,0.55)] text-[#3ec5ff]',
-        'shadow-[0_0_10px_-3.6px_#3ec5ff_inset] transition-colors hover:bg-[#3ec5ff]/15',
+        'border border-[#2fe6c0]/40 bg-[rgba(0,0,0,0.55)] text-[#2fe6c0]',
+        'shadow-[0_0_10px_-3.6px_#2fe6c0_inset] transition-colors hover:bg-[#2fe6c0]/15',
         'disabled:cursor-not-allowed disabled:opacity-50',
         className
       )}

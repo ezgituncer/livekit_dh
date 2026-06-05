@@ -1,6 +1,7 @@
-import { Public_Sans } from 'next/font/google';
+import { Chakra_Petch, Public_Sans } from 'next/font/google';
 import localFont from 'next/font/local';
 import { headers } from 'next/headers';
+import { SceneBackground } from '@/components/app/scene-background';
 import { ThemeProvider } from '@/components/app/theme-provider';
 import { ThemeToggle } from '@/components/app/theme-toggle';
 import { cn } from '@/lib/shadcn/utils';
@@ -9,6 +10,13 @@ import '@/styles/globals.css';
 
 const publicSans = Public_Sans({
   variable: '--font-public-sans',
+  subsets: ['latin'],
+});
+
+// HUD / sci-fi display font used for the status badge and accent labels.
+const chakraPetch = Chakra_Petch({
+  variable: '--font-chakra',
+  weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
 });
 
@@ -56,6 +64,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       className={cn(
         publicSans.variable,
         commitMono.variable,
+        chakraPetch.variable,
         'scroll-smooth font-sans antialiased'
       )}
     >
@@ -72,7 +81,17 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           enableSystem={false}
           disableTransitionOnChange
         >
+          <SceneBackground />
+          {/* Huawei logo (top-left), transparent — just the logo, no badge/chip.
+              Wordmark is white and the flower keeps its original red. */}
+          <div className="fixed top-5 left-6 z-40">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.svg" alt={appConfig.companyName} className="block h-9 w-auto" />
+          </div>
           {children}
+          <footer className="font-chakra pointer-events-none fixed inset-x-0 bottom-2 z-30 text-center text-[10px] tracking-[0.12em] text-white/35">
+            ©2026 Huawei Device Co., Ltd. Bütün hakları saklıdır.
+          </footer>
           <div className="group fixed bottom-0 left-1/2 z-50 mb-2 -translate-x-1/2">
             <ThemeToggle className="translate-y-20 transition-transform delay-150 duration-300 group-hover:translate-y-0" />
           </div>

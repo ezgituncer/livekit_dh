@@ -23,12 +23,12 @@ export const agentTrackToggleVariants = cva(['size-9'], {
     variant: {
       default: [
         // off / muted → dim neutral (no alarming red), matches the cyan UI
-        'data-[state=off]:bg-[rgba(0,0,0,0.4)] data-[state=off]:text-white/50 data-[state=off]:border-[#3ec5ff]/15',
+        'data-[state=off]:bg-[rgba(0,0,0,0.4)] data-[state=off]:text-white/50 data-[state=off]:border-[#2fe6c0]/15',
         'data-[state=off]:hover:bg-white/5 data-[state=off]:hover:text-white/80',
-        'data-[state=off]:focus-visible:ring-[#3ec5ff]/30',
+        'data-[state=off]:focus-visible:ring-[#2fe6c0]/30',
         // on / active → cyan accent
-        'data-[state=on]:bg-[#3ec5ff]/18 data-[state=on]:text-[#3ec5ff] data-[state=on]:border-[#3ec5ff]/45',
-        'data-[state=on]:hover:bg-[#3ec5ff]/25',
+        'data-[state=on]:bg-[#2fe6c0]/18 data-[state=on]:text-[#2fe6c0] data-[state=on]:border-[#2fe6c0]/45',
+        'data-[state=on]:hover:bg-[#2fe6c0]/25',
       ],
       outline: [
         'data-[state=off]:bg-destructive/10 data-[state=off]:text-destructive data-[state=off]:border-destructive/20',

@@ -119,11 +119,451 @@
     @apply border-foreground/20 outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
-    background-image: url('/bg_blue.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
+    @apply text-foreground;
+    /* Deep aqua/teal radial atmosphere (ported from the NOVA design mock). */
+    background: radial-gradient(120% 95% at 50% 40%, #0a2e2a 0%, #04110f 50%, #010706 100%) fixed;
+    color: var(--ink);
+  }
+}
+
+/* ===================================================================== */
+/*  NOVA AMBIENT SCENE — aqua/teal futuristic atmosphere                 */
+/* ===================================================================== */
+:root {
+  --aqua: #2fe6c0; /* primary accent   */
+  --cyan: #22d3ee; /* secondary accent */
+  --mint: #7dffe0; /* bright accent    */
+  --node: #c8fff2;
+  --ink: #ecfffb;
+  --ink-soft: #86b9b0;
+  --glass: rgba(8, 18, 18, 0.55);
+  --glass-line: rgba(94, 234, 212, 0.18);
+}
+
+/* Back scene sits behind everything. */
+.scene-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.scene-bg .scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* Centered glowing energy orb */
+.energy {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(720px, 90vw);
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+.energy .b {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(55px);
+  mix-blend-mode: screen;
+}
+.energy .b1 {
+  inset: 8%;
+  background: radial-gradient(circle, rgba(47, 230, 192, 0.6), transparent 64%);
+  animation: drift1 13s ease-in-out infinite;
+}
+.energy .b2 {
+  inset: 22% 6% 24% 30%;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.55), transparent 64%);
+  animation: drift2 17s ease-in-out infinite;
+}
+.energy .b3 {
+  inset: 26% 30% 8% 6%;
+  background: radial-gradient(circle, rgba(125, 255, 224, 0.5), transparent 64%);
+  animation: drift3 11s ease-in-out infinite;
+}
+.energy .swirl {
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.55;
+  mix-blend-mode: screen;
+  background: conic-gradient(
+    from 0deg,
+    transparent,
+    rgba(125, 255, 224, 0.75),
+    transparent 38%,
+    rgba(34, 211, 238, 0.65),
+    transparent 72%,
+    rgba(47, 230, 192, 0.7),
+    transparent
+  );
+}
+.energy .core {
+  position: absolute;
+  inset: 34%;
+  border-radius: 50%;
+  filter: blur(26px);
+  mix-blend-mode: screen;
+  background: radial-gradient(
+    circle,
+    rgba(200, 255, 242, 0.85),
+    rgba(47, 230, 192, 0.5) 45%,
+    transparent 72%
+  );
+  animation: pulse 5.5s ease-in-out infinite;
+}
+@keyframes drift1 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(7%, -6%) scale(1.12);
+  }
+}
+@keyframes drift2 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-8%, 5%) scale(1.18);
+  }
+}
+@keyframes drift3 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(5%, 7%) scale(0.9);
+  }
+}
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
+}
+
+/* Orbiting luminous particles canvas */
+#orbit {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Film overlays sit above content but never block clicks. */
+.scene-overlays {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+.scene-overlays .grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.scene-overlays .vignette {
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 240px 80px rgba(1, 6, 5, 0.9);
+}
+
+/* "Deck" control bar — static glass, no rotating halo / glow. */
+.deck-glow {
+  background: linear-gradient(180deg, rgba(16, 30, 28, 0.72), rgba(6, 14, 13, 0.82)) !important;
+  border-color: var(--glass-line) !important;
+  backdrop-filter: blur(22px);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+}
+
+/* Decorative HUD status badge (top-left). */
+.hud-status {
+  position: fixed;
+  top: 22px;
+  left: 26px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  border-radius: 16px;
+  padding: 10px 16px;
+  backdrop-filter: blur(14px);
+  font-family: var(--font-chakra, var(--font-mono));
+}
+.hud-status .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--aqua);
+  box-shadow: 0 0 12px var(--aqua);
+  animation: blink 2s infinite;
+}
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+.hud-status .meta b {
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  display: block;
+  color: var(--ink);
+}
+.hud-status .meta span {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+.hud-status .signal {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+  padding-left: 11px;
+  border-left: 1px solid var(--glass-line);
+}
+.hud-status .signal i {
+  width: 3px;
+  background: var(--aqua);
+  border-radius: 1px;
+  box-shadow: 0 0 5px var(--aqua);
+}
+.hud-status .signal i:nth-child(1) {
+  height: 5px;
+}
+.hud-status .signal i:nth-child(2) {
+  height: 8px;
+}
+.hud-status .signal i:nth-child(3) {
+  height: 11px;
+}
+.hud-status .signal i:nth-child(4) {
+  height: 14px;
+}
+@media (max-width: 680px) {
+  .hud-status .signal {
+    display: none;
+  }
+}
+
+/* ===================================================================== */
+/*  WELCOME HEADLINE — bright, glowing, streamed typewriter text           */
+/* ===================================================================== */
+/* Shared Chakra Petch typeface utility (welcome headline, chat transcript, input). */
+.font-chakra {
+  font-family: var(--font-chakra, var(--font-sans));
+}
+.welcome-headline {
+  font-family: var(--font-chakra, var(--font-sans));
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.4;
+  letter-spacing: 0.03em;
+  color: #f2fffb;
+  text-shadow:
+    0 0 18px rgba(47, 230, 192, 0.75),
+    0 2px 10px rgba(0, 6, 5, 0.7);
+}
+.typed-caret {
+  margin-left: 2px;
+  color: var(--aqua);
+  text-shadow: 0 0 12px var(--aqua);
+  animation: caretBlink 0.85s steps(1) infinite;
+}
+@keyframes caretBlink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ===================================================================== */
+/*  MIC LISTENING — equalizer bars + pulsing ring while recording         */
+/*  (no rotation: only scale / opacity / height)                          */
+/* ===================================================================== */
+.mic-eq {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5px;
+  height: 18px;
+}
+/* Bar heights are driven live by the mic's audio level (see MicLevelBars). */
+.mic-eq i {
+  width: 3px;
+  height: 4px;
+  border-radius: 2px;
+  background: currentColor;
+  transition: height 90ms linear;
+}
+.mic-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--aqua);
+  pointer-events: none;
+  animation: micPulse 1.5s ease-out infinite;
+}
+.mic-ring.delayed {
+  animation-delay: 0.75s;
+}
+@keyframes micPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+/* ===================================================================== */
+/*  AVATAR LOADER — morphing liquid aurora blob + shimmer label           */
+/*  Modern "AI assistant" feel. NOT a mic/record visual (no equalizer     */
+/*  bars, no expanding sonar rings). No rotation: only morph / scale /    */
+/*  opacity / gradient drift.                                             */
+/* ===================================================================== */
+.avatar-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+}
+.avatar-loader .blob-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 150px;
+  height: 150px;
+}
+/* shape-shifting gradient blob — the focal element */
+.avatar-loader .blob {
+  position: absolute;
+  width: 112px;
+  height: 112px;
+  background: linear-gradient(
+    130deg,
+    var(--mint) 0%,
+    var(--aqua) 38%,
+    var(--cyan) 68%,
+    #6366f1 105%
+  );
+  background-size: 200% 200%;
+  background-position: 0% 50%;
+  border-radius: 60% 40% 35% 65% / 55% 45% 55% 45%;
+  box-shadow:
+    0 0 38px rgba(47, 230, 192, 0.35),
+    inset 0 0 28px rgba(255, 255, 255, 0.28);
+  animation:
+    blobMorph 7s ease-in-out infinite,
+    blobFlow 5s ease-in-out infinite,
+    blobPulse 3.6s ease-in-out infinite;
+}
+/* blurred twin behind it for a soft volumetric glow */
+.avatar-loader .blob-glow {
+  width: 130px;
+  height: 130px;
+  filter: blur(26px);
+  box-shadow: none;
+  animation:
+    blobMorph 7s ease-in-out infinite,
+    blobFlow 5s ease-in-out infinite,
+    blobGlow 3.6s ease-in-out infinite;
+}
+@keyframes blobMorph {
+  0%,
+  100% {
+    border-radius: 60% 40% 35% 65% / 55% 45% 55% 45%;
+  }
+  25% {
+    border-radius: 45% 55% 60% 40% / 50% 60% 40% 50%;
+  }
+  50% {
+    border-radius: 40% 60% 55% 45% / 60% 40% 60% 40%;
+  }
+  75% {
+    border-radius: 55% 45% 45% 55% / 45% 55% 45% 55%;
+  }
+}
+@keyframes blobFlow {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+@keyframes blobPulse {
+  0%,
+  100% {
+    transform: scale(0.97);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.05);
+    filter: brightness(1.16);
+  }
+}
+@keyframes blobGlow {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.85;
+  }
+}
+/* label with a light sweeping through the text */
+.avatar-loader .label {
+  font-family: var(--font-chakra, var(--font-mono));
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  background: linear-gradient(
+    90deg,
+    rgba(125, 255, 224, 0.3) 0%,
+    var(--mint) 50%,
+    rgba(125, 255, 224, 0.3) 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: labelShimmer 2.6s linear infinite;
+}
+@keyframes labelShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
   }
 }

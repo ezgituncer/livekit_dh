@@ -126,9 +126,9 @@ export const DEFAULT_ADVANCED_TURN_HANDLING_SETTINGS: AdvancedTurnHandlingSettin
 export const AGENT_NAME = 'eval-voice-agent';
 
 export const APP_CONFIG_DEFAULTS: AppConfig = {
-  companyName: 'LiveKit',
-  pageTitle: 'LiveKit Voice Agent',
-  pageDescription: 'A voice agent built with LiveKit',
+  companyName: 'Huawei',
+  pageTitle: 'Huawei',
+  pageDescription: 'Huawei voice agent',
 
   supportsChatInput: true,
   supportsVideoInput: true,
@@ -136,9 +136,9 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
   isPreConnectBufferEnabled: true,
 
   logo: '/lk-logo.svg',
-  accent: '#002cf2',
+  accent: '#2fe6c0',
   logoDark: '/lk-logo-dark.svg',
-  accentDark: '#1fd5f9',
+  accentDark: '#2fe6c0',
   startButtonText: 'Start call',
 
   agentName: process.env.AGENT_NAME ?? AGENT_NAME,

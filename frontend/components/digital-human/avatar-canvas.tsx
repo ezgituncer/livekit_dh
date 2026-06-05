@@ -45,8 +45,12 @@ export function AvatarCanvas({ className }: AvatarCanvasProps) {
   return (
     <div ref={containerRef} className={cn('relative h-full w-full overflow-hidden', className)}>
       {status === 'loading' && (
-        <div className="text-muted-foreground absolute inset-0 flex items-center justify-center text-sm">
-          Loading avatar…
+        <div className="avatar-loader">
+          <div className="blob-stage">
+            <span className="blob blob-glow" />
+            <span className="blob" />
+          </div>
+          <span className="label">Preparing avatar</span>
         </div>
       )}
       {status === 'error' && (

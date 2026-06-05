@@ -208,7 +208,7 @@ export function AgentSessionView_01({
       <Fade top className="absolute inset-x-4 top-0 z-10 h-40" />
       {/* transcript */}
 
-      <div className="absolute inset-x-0 top-1/2 bottom-[135px] z-40 flex flex-col md:top-0 md:right-0 md:left-1/2 md:bottom-[170px]">
+      <div className="absolute inset-x-0 top-1/2 bottom-[135px] z-40 flex flex-col md:top-0 md:right-0 md:bottom-[170px] md:left-1/2">
         <AnimatePresence>
           {chatOpen && (
             <motion.div
@@ -218,7 +218,7 @@ export function AgentSessionView_01({
               <AgentChatTranscript
                 agentState={agentState}
                 messages={messages}
-                className="mx-auto w-full max-w-2xl px-2 [&_.is-user>div]:rounded-[22px] [&>div>div]:px-4 [&>div>div]:pt-6 md:[&>div>div]:px-6 md:[&>div>div]:pt-16"
+                className="mx-auto w-full max-w-2xl px-2 [&>div>div]:px-4 [&>div>div]:pt-6 md:[&>div>div]:px-6 md:[&>div>div]:pt-16"
               />
             </motion.div>
           )}

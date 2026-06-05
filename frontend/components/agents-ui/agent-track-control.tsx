@@ -24,9 +24,9 @@ const selectVariants = cva(
   [
     'rounded-l-none shadow-none pl-2 ',
     'text-white/70 hover:text-white',
-    'peer-data-[state=on]/track:bg-[#3ec5ff]/18 peer-data-[state=on]/track:text-[#3ec5ff] peer-data-[state=on]/track:hover:bg-[#3ec5ff]/25',
+    'peer-data-[state=on]/track:bg-[#2fe6c0]/18 peer-data-[state=on]/track:text-[#2fe6c0] peer-data-[state=on]/track:hover:bg-[#2fe6c0]/25',
     'peer-data-[state=off]/track:text-white/50',
-    'peer-data-[state=off]/track:focus-visible:border-[#3ec5ff]/40 peer-data-[state=off]/track:focus-visible:ring-[#3ec5ff]/30',
+    'peer-data-[state=off]/track:focus-visible:border-[#2fe6c0]/40 peer-data-[state=off]/track:focus-visible:ring-[#2fe6c0]/30',
     '[&_svg]:opacity-100',
   ],
   {
@@ -38,8 +38,8 @@ const selectVariants = cva(
           'peer-data-[state=off]/track:hover:bg-white/5',
           'peer-data-[state=off]/track:[&_svg]:text-white/50!',
 
-          'dark:peer-data-[state=on]/track:bg-[#3ec5ff]/18',
-          'dark:peer-data-[state=on]/track:hover:bg-[#3ec5ff]/25',
+          'dark:peer-data-[state=on]/track:bg-[#2fe6c0]/18',
+          'dark:peer-data-[state=on]/track:hover:bg-[#2fe6c0]/25',
           'dark:peer-data-[state=off]/track:bg-[rgba(0,0,0,0.4)]',
           'dark:peer-data-[state=off]/track:hover:bg-white/5',
         ],
@@ -296,7 +296,7 @@ export function AgentTrackControl({
             <span
               className={cn([
                 'h-full min-h-0.5 w-0.5 origin-center',
-                'group-data-[state=on]/track:bg-[#3ec5ff] group-data-[state=off]/track:bg-white/30',
+                'group-data-[state=off]/track:bg-white/30 group-data-[state=on]/track:bg-[#2fe6c0]',
                 'data-lk-muted:bg-muted',
               ])}
             />
