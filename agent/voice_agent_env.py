@@ -63,7 +63,7 @@ logger = logging.getLogger("agent")
 load_dotenv(".env")
 
 
-SUPPORTED_LANGUAGES = {"en", "ar", "tr", "zh"}
+SUPPORTED_LANGUAGES = {"tr", "en", "ar", "es", "pt", "ru"}
 
 DEFAULT_STT = "elevenlabs-scribe-v2"
 DEFAULT_TTS = "elevenlabs-multilingual-v2"

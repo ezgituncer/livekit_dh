@@ -3,6 +3,7 @@ import { toast as sonnerToast } from 'sonner';
 import { useAgent, useSessionContext } from '@livekit/components-react';
 import { WarningIcon } from '@phosphor-icons/react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useI18n } from '@/lib/i18n/i18n';
 
 interface ToastProps {
   title: ReactNode;
@@ -27,13 +28,14 @@ function toastAlert(toast: ToastProps) {
 export function useAgentErrors() {
   const agent = useAgent();
   const { isConnected, end } = useSessionContext();
+  const { t } = useI18n();
 
   useEffect(() => {
     if (isConnected && agent.state === 'failed') {
       const reasons = agent.failureReasons;
 
       toastAlert({
-        title: 'Session ended',
+        title: t.sessionEnded,
         description: (
           <>
             {reasons.length > 1 && (
@@ -50,5 +52,5 @@ export function useAgentErrors() {
 
       end();
     }
-  }, [agent, isConnected, end]);
+  }, [agent, isConnected, end, t]);
 }

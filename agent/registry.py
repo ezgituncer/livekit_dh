@@ -97,10 +97,12 @@ def _elevenlabs_stt(model_id: str, *, realtime: bool) -> Callable[[dict[str, Any
 
 
 _AZURE_LANGUAGE_MAP: dict[str, str] = {
+    "tr": "tr-TR",
     "en": "en-US",
     "ar": "ar-AE",
-    "tr": "tr-TR",
-    "zh": "zh-CN",
+    "es": "es-ES",
+    "pt": "pt-BR",
+    "ru": "ru-RU",
 }
 
 

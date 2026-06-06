@@ -7,6 +7,8 @@ import type {
 } from '@/app-config';
 import { TypewriterText } from '@/components/app/typewriter-text';
 import { Button } from '@/components/ui/button';
+import { useI18n } from '@/lib/i18n/i18n';
+import { cn } from '@/lib/shadcn/utils';
 
 function WelcomeImage() {
   return (
@@ -31,7 +33,8 @@ interface WelcomeViewProps {
   onStartCall: () => void;
   // The following are still provided by the view controller but are no longer
   // surfaced here — the landing page is intentionally static (just "Start
-  // call"). Configuration lives on the Advanced Settings page.
+  // call"). The language picker lives on the in-call view; the rest of the
+  // configuration lives on the Advanced Settings page.
   stts?: STTOption[];
   selectedStt?: string | undefined;
   onSttChange?: (id: string) => void;
@@ -52,19 +55,17 @@ interface WelcomeViewProps {
 }
 
 export const WelcomeView = ({
-  startButtonText,
   onStartCall,
   ref,
 }: React.ComponentProps<'div'> & WelcomeViewProps) => {
+  const { t, dir } = useI18n();
+
   return (
     <div ref={ref}>
       <section className="flex flex-col items-center justify-center text-center">
         <WelcomeImage />
 
-        <TypewriterText
-          text="Chat live with your voice AI agent"
-          className="max-w-prose pt-1 pb-2"
-        />
+        <TypewriterText text={t.welcomeHeadline} className="max-w-prose pt-1 pb-2" />
 
         <div
           className="mt-6 w-64"
@@ -78,9 +79,13 @@ export const WelcomeView = ({
           <Button
             size="lg"
             onClick={onStartCall}
-            className="h-[60px] w-full rounded-[13px] border-0 bg-[rgb(8,40,36)] font-mono text-xs font-bold tracking-wider text-[#2fe6c0] uppercase shadow-none hover:bg-[rgb(12,52,46)]"
+            className={cn(
+              'h-[60px] w-full rounded-[13px] border-0 bg-[rgb(8,40,36)] font-mono text-xs font-bold tracking-wider text-[#2fe6c0] uppercase shadow-none hover:bg-[rgb(12,52,46)]',
+              // Arabic letters must not be letter-spaced or uppercased.
+              dir === 'rtl' && 'tracking-normal normal-case'
+            )}
           >
-            {startButtonText}
+            {t.startCall}
           </Button>
         </div>
       </section>

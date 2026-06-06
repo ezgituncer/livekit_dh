@@ -16,6 +16,7 @@ import {
   useInputControls,
   usePublishPermissions,
 } from '@/hooks/agents-ui/use-agent-control-bar';
+import { useI18n } from '@/lib/i18n/i18n';
 import { cn } from '@/lib/shadcn/utils';
 
 // Shared shapes for the single-row "deck": circular action buttons and pill chips.
@@ -164,6 +165,7 @@ export function AgentControlBar({
   variant: _variant,
   ...props
 }: AgentControlBarProps & ComponentProps<'div'>) {
+  const { t } = useI18n();
   const { send } = useChat();
   const publishPermissions = usePublishPermissions();
   const [isChatOpenUncontrolled, setIsChatOpenUncontrolled] = useState(isChatOpen);
@@ -211,7 +213,7 @@ export function AgentControlBar({
 
   return (
     <div
-      aria-label="Voice assistant controls"
+      aria-label={t.controls}
       className={cn('deck-glow flex items-center gap-2 rounded-full border p-2', className)}
       {...props}
     >
@@ -219,8 +221,8 @@ export function AgentControlBar({
       {visibleControls.microphone && (
         <button
           type="button"
-          aria-label="Toggle microphone"
-          title={micOn ? 'Mute microphone' : 'Unmute microphone'}
+          aria-label={t.toggleMic}
+          title={micOn ? t.muteMic : t.unmuteMic}
           disabled={microphoneToggle.pending}
           onClick={() => microphoneToggle.toggle()}
           className={cn(
@@ -248,7 +250,7 @@ export function AgentControlBar({
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Type a message or tap the mic to speak…"
+        placeholder={t.typeMessage}
         autoComplete="off"
         className="font-chakra min-w-0 flex-1 bg-transparent px-1 text-[15px] text-white placeholder:text-white/40 focus:outline-none"
       />
@@ -260,8 +262,8 @@ export function AgentControlBar({
       {visibleControls.chat && (
         <button
           type="button"
-          aria-label="Toggle transcript"
-          title="Transcript"
+          aria-label={t.toggleTranscript}
+          title={t.transcript}
           onClick={toggleChat}
           className={cn(CHIP, chatOpen && 'bg-[#2fe6c0]/15 text-[#2fe6c0] hover:bg-[#2fe6c0]/22')}
         >
@@ -272,8 +274,8 @@ export function AgentControlBar({
       {/* Send */}
       <button
         type="button"
-        aria-label="Send message"
-        title={isSending ? 'Sending…' : 'Send'}
+        aria-label={t.sendMessage}
+        title={isSending ? t.sending : t.send}
         disabled={!canSend}
         onClick={handleSend}
         className={cn(
@@ -296,8 +298,8 @@ export function AgentControlBar({
           <span className="mx-0.5 h-7 w-px flex-none bg-[rgba(94,234,212,0.18)]" />
           <button
             type="button"
-            aria-label="End call"
-            title="End call"
+            aria-label={t.endCall}
+            title={t.endCall}
             disabled={!isConnected}
             onClick={onDisconnect}
             className={cn(

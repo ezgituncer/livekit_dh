@@ -65,10 +65,12 @@ export interface LanguageOption {
 }
 
 export const SUPPORTED_LANGUAGES: LanguageOption[] = [
+  { code: 'tr', label: 'Türkçe' },
   { code: 'en', label: 'English' },
   { code: 'ar', label: 'العربية' },
-  { code: 'tr', label: 'Türkçe' },
-  { code: 'zh', label: '中文' },
+  { code: 'es', label: 'Español' },
+  { code: 'pt', label: 'Português' },
+  { code: 'ru', label: 'Русский' },
 ];
 
 export const DEFAULT_LANGUAGE = 'en';
