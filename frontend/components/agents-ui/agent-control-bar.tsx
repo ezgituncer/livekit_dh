@@ -22,7 +22,7 @@ import { cn } from '@/lib/shadcn/utils';
 // Shared shapes for the single-row "deck": circular action buttons and pill chips.
 const CIRCLE = 'grid size-11 flex-none place-items-center rounded-full transition-colors';
 const CHIP =
-  'grid size-9 flex-none place-items-center rounded-full text-white/55 transition-colors hover:bg-white/8 hover:text-white';
+  'grid size-9 flex-none place-items-center rounded-full text-(--ink-soft) transition-colors hover:bg-(--aqua)/10 hover:text-(--ink)';
 
 /**
  * Live microphone-level indicator. The four equalizer bars track the mic's
@@ -229,8 +229,8 @@ export function AgentControlBar({
             CIRCLE,
             'relative',
             micOn
-              ? 'border border-[#2fe6c0]/45 bg-[#2fe6c0]/20 text-[#2fe6c0] shadow-[0_0_18px_rgba(47,230,192,0.35)] hover:bg-[#2fe6c0]/28'
-              : 'border border-[#2fe6c0]/15 bg-black/30 text-white/55 hover:bg-white/8 hover:text-white/85'
+              ? 'border border-(--aqua)/45 bg-(--aqua)/20 text-(--aqua) shadow-[0_0_18px_var(--accent-glow)] hover:bg-(--aqua)/28'
+              : 'border border-(--aqua)/15 bg-(--glass) text-(--ink-soft) hover:bg-(--aqua)/10 hover:text-(--ink)'
           )}
         >
           {microphoneToggle.pending ? (
@@ -252,7 +252,7 @@ export function AgentControlBar({
         onKeyDown={handleKeyDown}
         placeholder={t.typeMessage}
         autoComplete="off"
-        className="font-chakra min-w-0 flex-1 bg-transparent px-1 text-[15px] text-white placeholder:text-white/40 focus:outline-none"
+        className="font-chakra min-w-0 flex-1 bg-transparent px-1 text-[15px] text-(--ink) placeholder:text-(--ink-soft) focus:outline-none"
       />
 
       {/* Skip — only visible while the agent is speaking */}
@@ -265,7 +265,7 @@ export function AgentControlBar({
           aria-label={t.toggleTranscript}
           title={t.transcript}
           onClick={toggleChat}
-          className={cn(CHIP, chatOpen && 'bg-[#2fe6c0]/15 text-[#2fe6c0] hover:bg-[#2fe6c0]/22')}
+          className={cn(CHIP, chatOpen && 'bg-(--aqua)/15 text-(--aqua) hover:bg-(--aqua)/22')}
         >
           <MessageSquareTextIcon className="size-[18px]" />
         </button>
@@ -280,8 +280,8 @@ export function AgentControlBar({
         onClick={handleSend}
         className={cn(
           CIRCLE,
-          'bg-gradient-to-br from-[#7dffe0] via-[#2fe6c0] to-[#22d3ee] text-[#04221d]',
-          'shadow-[0_4px_16px_rgba(47,230,192,0.35)] hover:brightness-110 active:scale-95',
+          'bg-linear-to-br from-(--mint) via-(--aqua) to-(--cyan) text-(--accent-contrast)',
+          'shadow-[0_4px_16px_var(--accent-glow)] hover:brightness-110 active:scale-95',
           'disabled:cursor-not-allowed disabled:opacity-35 disabled:shadow-none disabled:hover:brightness-100'
         )}
       >
@@ -295,7 +295,7 @@ export function AgentControlBar({
       {/* Disconnect */}
       {visibleControls.leave && (
         <>
-          <span className="mx-0.5 h-7 w-px flex-none bg-[rgba(94,234,212,0.18)]" />
+          <span className="mx-0.5 h-7 w-px flex-none bg-(--glass-line)" />
           <button
             type="button"
             aria-label={t.endCall}
@@ -304,7 +304,7 @@ export function AgentControlBar({
             onClick={onDisconnect}
             className={cn(
               CIRCLE,
-              'border border-[#ff6b7a]/35 bg-[#ff6b7a]/10 text-[#ff6b7a] hover:bg-[#ff6b7a]/22 hover:shadow-[0_0_18px_rgba(255,107,122,0.3)]',
+              'border border-(--danger)/35 bg-(--danger)/10 text-(--danger) hover:bg-(--danger)/22 hover:shadow-[0_0_18px_rgba(255,107,122,0.3)]',
               'disabled:cursor-not-allowed disabled:opacity-40'
             )}
           >

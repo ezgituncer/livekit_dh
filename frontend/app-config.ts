@@ -135,7 +135,9 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
   supportsChatInput: true,
   supportsVideoInput: true,
   supportsScreenShare: true,
-  isPreConnectBufferEnabled: true,
+  // The mic starts off and the user taps to talk, so there's no pre-connect
+  // audio to buffer (and the "agent is listening" hint would be misleading).
+  isPreConnectBufferEnabled: false,
 
   logo: '/lk-logo.svg',
   accent: '#2fe6c0',

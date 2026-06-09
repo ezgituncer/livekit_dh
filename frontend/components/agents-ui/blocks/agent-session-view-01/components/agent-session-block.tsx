@@ -1,14 +1,22 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, type MotionProps, motion } from 'motion/react';
-import { useAgent, useSessionContext, useSessionMessages } from '@livekit/components-react';
+import {
+  useAgent,
+  useRoomContext,
+  useSessionContext,
+  useSessionMessages,
+  useVoiceAssistant,
+} from '@livekit/components-react';
 import { AgentChatTranscript } from '@/components/agents-ui/agent-chat-transcript';
 import {
   AgentControlBar,
   type AgentControlBarControls,
 } from '@/components/agents-ui/agent-control-bar';
 import { Shimmer } from '@/components/ai-elements/shimmer';
+import { SuggestedQuestions } from '@/components/app/suggested-questions';
+import { useAvatarStatus } from '@/lib/digital-human/use-avatar';
 import { cn } from '@/lib/shadcn/utils';
 import { TileLayout } from './tile-view';
 
@@ -178,11 +186,39 @@ export function AgentSessionView_01({
   const session = useSessionContext();
   const { messages } = useSessionMessages(session);
   const [chatOpen, setChatOpen] = useState(false);
+  // Messages before this timestamp are hidden — set on "end call" so each new
+  // conversation starts with a clean transcript.
+  const [clearedAt, setClearedAt] = useState(0);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { state: agentState } = useAgent();
+  const room = useRoomContext();
+  const { agent } = useVoiceAssistant();
+  // Hide the suggestions until the avatar has finished loading (show on error
+  // too, so a failed avatar doesn't hide them forever).
+  const avatarStatus = useAvatarStatus();
+  const avatarReady = avatarStatus === 'ready' || avatarStatus === 'error';
+
+  // End call: stop the agent mid-utterance (same "skip" RPC the Skip button
+  // uses → session.interrupt), clear the transcript, and return to suggestions.
+  const handleEndCall = () => {
+    if (agent) {
+      void room.localParticipant
+        .performRpc({ destinationIdentity: agent.identity, method: 'skip', payload: '' })
+        .catch((e) => console.error('[end-call] skip RPC failed:', e));
+    }
+    setChatOpen(false);
+    setClearedAt(Date.now());
+  };
+
+  const visibleMessages = useMemo(
+    () => messages.filter((m) => new Date(m.timestamp).getTime() > clearedAt),
+    [messages, clearedAt]
+  );
 
   const controls: AgentControlBarControls = {
-    leave: true,
+    // "End call" shows only during a conversation (chatOpen); clicking it
+    // returns to the suggestions screen (see onDisconnect below).
+    leave: chatOpen,
     microphone: true,
     chat: supportsChatInput,
     // Camera and screen share are intentionally disabled for this digital-human UI.
@@ -191,13 +227,13 @@ export function AgentSessionView_01({
   };
 
   useEffect(() => {
-    const lastMessage = messages.at(-1);
+    const lastMessage = visibleMessages.at(-1);
     const lastMessageIsLocal = lastMessage?.from?.isLocal === true;
 
     if (scrollAreaRef.current && lastMessageIsLocal) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [visibleMessages]);
 
   return (
     <section
@@ -217,7 +253,7 @@ export function AgentSessionView_01({
             >
               <AgentChatTranscript
                 agentState={agentState}
-                messages={messages}
+                messages={visibleMessages}
                 className="mx-auto w-full max-w-2xl px-2 [&>div>div]:px-4 [&>div>div]:pt-6 md:[&>div>div]:px-6 md:[&>div>div]:pt-16"
               />
             </motion.div>
@@ -237,6 +273,16 @@ export function AgentSessionView_01({
         audioVisualizerGridColumnCount={audioVisualizerGridColumnCount}
         audioVisualizerWaveLineWidth={audioVisualizerWaveLineWidth}
       />
+      {/* Suggested questions — category tabs + the selected category's
+          questions, anchored just above the control deck so the digital human
+          stays visible. Hidden while the transcript is open. */}
+      {!chatOpen && avatarReady && (
+        <div className="absolute inset-x-3 bottom-28 z-50 flex justify-center md:inset-x-12 md:bottom-36">
+          {/* Picking a question switches to the conversation view (transcript +
+              end-call) by opening the chat. */}
+          <SuggestedQuestions onAsk={() => setChatOpen(true)} />
+        </div>
+      )}
       {/* Bottom */}
       <motion.div
         {...BOTTOM_VIEW_MOTION_PROPS}
@@ -245,11 +291,11 @@ export function AgentSessionView_01({
         {/* Pre-connect message */}
         {isPreConnectBufferEnabled && (
           <AnimatePresence>
-            {messages.length === 0 && (
+            {visibleMessages.length === 0 && (
               <MotionMessage
                 key="pre-connect-message"
                 duration={2}
-                aria-hidden={messages.length > 0}
+                aria-hidden={visibleMessages.length > 0}
                 {...SHIMMER_MOTION_PROPS}
                 className="pointer-events-none mx-auto block w-full max-w-2xl pb-4 text-center text-sm font-semibold"
               >
@@ -264,7 +310,9 @@ export function AgentSessionView_01({
             controls={controls}
             isChatOpen={chatOpen}
             isConnected={session.isConnected}
-            onDisconnect={session.end}
+            // "End call" stops the agent (interrupt), clears the transcript, and
+            // returns to the suggestions screen. The session stays alive.
+            onDisconnect={handleEndCall}
             onIsChatOpenChange={setChatOpen}
           />
         </div>

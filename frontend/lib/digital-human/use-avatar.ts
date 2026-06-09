@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useReducer, useRef } from 'react';
 import { AVATAR_ID, type AvatarSpec, type AvatarStatus, type BundleSpec } from './types';
 
 // Resources are served from frontend/public/digital-human/** (see that folder).
@@ -275,6 +276,22 @@ export function getAvatarSingleton(): AvatarSingleton {
   });
 
   return s;
+}
+
+/** Subscribe to the avatar singleton's load status (re-renders on change). */
+export function useAvatarStatus(): AvatarStatus {
+  const [, force] = useReducer((x: number) => x + 1, 0);
+  const ref = useRef<AvatarSingleton | null>(null);
+  useEffect(() => {
+    const s = getAvatarSingleton();
+    ref.current = s;
+    s.listeners.add(force);
+    force();
+    return () => {
+      s.listeners.delete(force);
+    };
+  }, []);
+  return ref.current?.status ?? 'loading';
 }
 
 // --- Lip-sync (Phase 2: amplitude-driven) -----------------------------------

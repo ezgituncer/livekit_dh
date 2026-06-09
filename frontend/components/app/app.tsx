@@ -1,12 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useSession } from '@livekit/components-react';
 import { WarningIcon } from '@phosphor-icons/react/dist/ssr';
 import { type AppConfig, DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from '@/app-config';
 import { AgentSessionProvider } from '@/components/agents-ui/agent-session-provider';
 import { StartAudioButton } from '@/components/agents-ui/start-audio-button';
-import { ViewController } from '@/components/app/view-controller';
 import { Toaster } from '@/components/ui/sonner';
 import { useAgentErrors } from '@/hooks/useAgentErrors';
 import { useDebugMode } from '@/hooks/useDebug';
@@ -14,6 +14,14 @@ import { loadAdvancedSettings, loadAdvancedTurnHandlingSettings } from '@/lib/ad
 import { I18nProvider } from '@/lib/i18n/i18n';
 import { getDir, tFor } from '@/lib/i18n/translations';
 import { getAgentTokenSource, getSandboxTokenSource } from '@/lib/utils';
+
+// The in-call view depends on a live LiveKit room and Radix components whose
+// useId-based ids can't match between SSR and the client, so render it
+// client-only (no SSR) to avoid hydration mismatches.
+const ViewController = dynamic(
+  () => import('@/components/app/view-controller').then((m) => m.ViewController),
+  { ssr: false }
+);
 
 const LANGUAGE_STORAGE_KEY = 'voice-agent.language';
 const SUPPORTED_LANGUAGE_CODES = new Set(SUPPORTED_LANGUAGES.map((l) => l.code));
@@ -126,7 +134,8 @@ export function App({ appConfig }: AppProps) {
       void (async () => {
         try {
           await session.end();
-          await session.start();
+          // Reconnect with the mic off too — the user taps to start listening.
+          await session.start({ tracks: { microphone: { enabled: false } } });
         } catch (err) {
           console.error('Failed to reconnect after language change', err);
         } finally {

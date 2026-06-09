@@ -53,7 +53,7 @@ export function LanguageSelect({
       <SelectTrigger
         aria-label={t.conversationLanguage}
         className={cn(
-          'h-10 gap-2.5 rounded-full border-[rgba(94,234,212,0.28)] bg-[rgb(8,40,36)]/55 pr-2.5 pl-3 text-sm font-medium text-[#ecfffb] shadow-[0_4px_20px_rgba(0,0,0,0.35)] backdrop-blur-md transition-colors hover:border-[rgba(94,234,212,0.5)] hover:bg-[rgb(12,52,46)]/65 focus-visible:ring-[#2fe6c0]/40 data-[state=open]:border-[rgba(94,234,212,0.6)]',
+          'h-10 gap-2.5 rounded-full border-(--glass-line) bg-(--surface)/55 pr-2.5 pl-3 text-sm font-medium text-(--ink) shadow-[0_4px_20px_rgba(0,0,0,0.35)] backdrop-blur-md transition-colors hover:border-(--aqua)/50 hover:bg-(--surface-hover)/65 focus-visible:ring-(--aqua)/40 data-[state=open]:border-(--aqua)/60',
           className
         )}
       >
@@ -63,20 +63,20 @@ export function LanguageSelect({
             <span className="leading-none">{current.label}</span>
           </span>
         ) : (
-          <span className="text-[#86b9b0]">{t.language}</span>
+          <span className="text-(--ink-soft)">{t.language}</span>
         )}
       </SelectTrigger>
       <SelectContent
         position="popper"
         align="end"
         sideOffset={8}
-        className="min-w-[200px] rounded-2xl border-[rgba(94,234,212,0.18)] bg-[rgb(6,16,15)]/95 p-1.5 text-[#ecfffb] shadow-[0_18px_50px_rgba(0,0,0,0.55)] backdrop-blur-xl"
+        className="min-w-[200px] rounded-2xl border-(--glass-line) bg-(--menu-bg) p-1.5 text-(--ink) shadow-[0_18px_50px_rgba(0,0,0,0.55)] backdrop-blur-xl"
       >
         {languages.map((l) => (
           <SelectItem
             key={l.code}
             value={l.code}
-            className="gap-3 rounded-xl py-2 pr-9 pl-2.5 text-sm text-[#cfeee7] data-[highlighted]:bg-white/8 data-[highlighted]:text-white data-[state=checked]:bg-[#2fe6c0]/14 data-[state=checked]:text-[#2fe6c0]"
+            className="gap-3 rounded-xl py-2 pr-9 pl-2.5 text-sm text-(--ink)/85 data-[highlighted]:bg-(--aqua)/10 data-[highlighted]:text-(--ink) data-[state=checked]:bg-(--aqua)/15 data-[state=checked]:text-(--aqua)"
           >
             <span className="flex items-center gap-3">
               <Flag code={l.code} />

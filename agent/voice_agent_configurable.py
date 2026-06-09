@@ -13,7 +13,6 @@ from livekit.agents import (
 from livekit.agents.voice.room_io import AudioInputOptions, RoomOptions
 from livekit.plugins import openai
 from livekit import rtc
-from openai.types.realtime import AudioTranscription
 from qwen_realtime.realtime_model import RealtimeModel as QwenRealtimeModel
 
 from registry import (
@@ -33,6 +32,16 @@ load_dotenv(".env")
 
 
 SUPPORTED_LANGUAGES = {"tr", "en", "ar", "es", "pt", "ru"}
+
+# English names used to pin the model's output language in its instructions.
+_LANGUAGE_NAMES = {
+    "tr": "Turkish",
+    "en": "English",
+    "ar": "Arabic",
+    "es": "Spanish",
+    "pt": "Portuguese",
+    "ru": "Russian",
+}
 
 DEFAULT_STT = "elevenlabs-scribe-v2"
 DEFAULT_TTS = "elevenlabs-multilingual-v2"
@@ -189,12 +198,13 @@ async def entrypoint(ctx: JobContext):
             base_url="wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime",
             api_key="sk-ed9a5abfecde43a7a07005bf3400e2ff",
             voice="Ethan",  # erkek ses (alternatif: "Aiden")
-            # Sabit dil ipucu ver: aksi halde ASR oto-algı ile gürültüde Çince
-            # dolgu sözcüğü ("嗯") üretiyor. Oturumda seçilen dili, yoksa "en".
-            input_audio_transcription=AudioTranscription(
-                model="gummy-realtime-v1",
-                language=language or "en",
-            ),
+            # Single model: no separate input ASR. `None` (not unset) disables
+            # input transcription so the Qwen default gummy ASR is NOT applied —
+            # everything stays on qwen-omni (full-duplex speech + text). The
+            # model still understands speech; it just doesn't surface the user's
+            # words as a text transcript. The language directive in the agent
+            # instructions keeps the model's own output out of Chinese.
+            input_audio_transcription=None,
         ),
     )
 
@@ -205,7 +215,16 @@ async def entrypoint(ctx: JobContext):
 
         session.on("user_state_changed", on_user_state_changed)
 
-    instructions = VOICE_INSTRUCTIONS
+    # Pin the model's output language so qwen-omni never drifts into Chinese
+    # (e.g. filler like "嗯") — important now that the input ASR is disabled.
+    lang_name = _LANGUAGE_NAMES.get(language or "en", "English")
+    language_directive = (
+        f"Always speak and respond in {lang_name}. "
+        f"Never reply in Chinese or use Chinese characters, and do not emit "
+        f"filler sounds from other languages; if you need to acknowledge, use a "
+        f"natural {lang_name} word."
+    )
+    instructions = f"{language_directive}\n\n{VOICE_INSTRUCTIONS}"
     if tts_entry.instructions:
         instructions = f"{instructions}\n\n{tts_entry.instructions}"
 

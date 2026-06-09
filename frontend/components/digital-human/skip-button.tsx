@@ -43,8 +43,8 @@ export function SkipButton({ className }: { className?: string }) {
       aria-label={t.skip}
       className={cn(
         'flex h-9 items-center gap-1.5 rounded-full px-4 font-mono text-xs font-bold tracking-wider uppercase',
-        'border border-[#2fe6c0]/40 bg-[rgba(0,0,0,0.55)] text-[#2fe6c0]',
-        'shadow-[0_0_10px_-3.6px_#2fe6c0_inset] transition-colors hover:bg-[#2fe6c0]/15',
+        'border border-(--aqua)/40 bg-(--glass) text-(--aqua)',
+        'shadow-[0_0_10px_-3.6px_var(--aqua)_inset] transition-colors hover:bg-(--aqua)/15',
         'disabled:cursor-not-allowed disabled:opacity-50',
         dir === 'rtl' && 'tracking-normal normal-case',
         className

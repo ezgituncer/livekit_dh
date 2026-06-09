@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { DESIGN_PARTICLES } from '@/lib/design/design';
+import { useDesign } from '@/lib/design/design-context';
 
 /**
  * Futuristic ambient scene rendered behind the whole app, ported from the
@@ -13,13 +15,19 @@ import { useEffect, useRef } from 'react';
  */
 export function SceneBackground() {
   const orbitRef = useRef<HTMLCanvasElement>(null);
+  const { design } = useDesign();
 
   // ---- Orbiting / drifting light particles ----
+  // Re-runs on design change so particle colors follow the active palette.
   useEffect(() => {
     const cv = orbitRef.current;
     if (!cv) return;
     const ctx = cv.getContext('2d');
     if (!ctx) return;
+
+    // Particle colors come from JS (not CSS) to avoid racing the data-design
+    // attribute update when the theme is switched at runtime.
+    const { orbit: orbitRgb, drift: driftRgb, shadow: particleShadow } = DESIGN_PARTICLES[design];
 
     let W = 0;
     let H = 0;
@@ -59,7 +67,7 @@ export function SceneBackground() {
     const loop = () => {
       ctx.clearRect(0, 0, W, H);
       tk++;
-      ctx.shadowColor = 'rgba(47,230,192,.8)';
+      ctx.shadowColor = particleShadow;
       for (const p of orb) {
         p.ang += p.spd;
         const rr = p.rad + Math.sin(tk * 0.02 + p.ph) * 12;
@@ -67,7 +75,7 @@ export function SceneBackground() {
         const y = cy + Math.sin(p.ang) * rr * p.ry;
         ctx.beginPath();
         ctx.arc(x, y, p.size, 0, 7);
-        ctx.fillStyle = `rgba(150,255,235,${p.a})`;
+        ctx.fillStyle = `rgba(${orbitRgb},${p.a})`;
         ctx.shadowBlur = 8;
         ctx.fill();
       }
@@ -82,7 +90,7 @@ export function SceneBackground() {
         if (p.x > W + 5) p.x = -5;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, 7);
-        ctx.fillStyle = `rgba(125,255,224,${p.a})`;
+        ctx.fillStyle = `rgba(${driftRgb},${p.a})`;
         ctx.shadowBlur = 5;
         ctx.fill();
       }
@@ -95,7 +103,7 @@ export function SceneBackground() {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);
     };
-  }, []);
+  }, [design]);
 
   return (
     <>

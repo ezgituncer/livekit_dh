@@ -70,8 +70,7 @@ export const WelcomeView = ({
         <div
           className="mt-6 w-64"
           style={{
-            background:
-              'linear-gradient(127deg, rgb(47, 230, 192) 5.33%, rgba(34, 211, 238, 0.45) 103.78%)',
+            background: 'linear-gradient(127deg, var(--aqua) 5%, var(--cyan) 104%)',
             padding: '2px',
             borderRadius: '15px',
           }}
@@ -80,7 +79,7 @@ export const WelcomeView = ({
             size="lg"
             onClick={onStartCall}
             className={cn(
-              'h-[60px] w-full rounded-[13px] border-0 bg-[rgb(8,40,36)] font-mono text-xs font-bold tracking-wider text-[#2fe6c0] uppercase shadow-none hover:bg-[rgb(12,52,46)]',
+              'h-[60px] w-full rounded-[13px] border-0 bg-(--surface) font-mono text-xs font-bold tracking-wider text-(--aqua) uppercase shadow-none hover:bg-(--surface-hover)',
               // Arabic letters must not be letter-spaced or uppercased.
               dir === 'rtl' && 'tracking-normal normal-case'
             )}

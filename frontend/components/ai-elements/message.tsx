@@ -31,13 +31,14 @@ export const MessageContent = ({ children, className, ...props }: MessageContent
   <div
     className={cn(
       // Modern glass speech bubble — both roles get a tinted, blurred bubble.
-      'flex w-fit max-w-full min-w-0 flex-col gap-2 overflow-hidden rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-[0_8px_24px_rgba(0,0,0,0.28)] backdrop-blur-md',
+      // Colors follow the active design palette (see styles/globals.css).
+      'flex w-fit max-w-full min-w-0 flex-col gap-2 overflow-hidden rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-[0_8px_24px_var(--deck-shadow)] backdrop-blur-md',
       // Match the welcome headline typeface (Chakra Petch) for the transcript.
       'font-chakra tracking-[0.01em]',
-      // Assistant (AI) — aqua glass, tail on the top-left.
-      'group-[.is-assistant]:rounded-tl-sm group-[.is-assistant]:border group-[.is-assistant]:border-[#2fe6c0]/30 group-[.is-assistant]:bg-[#2fe6c0]/12 group-[.is-assistant]:text-[#ecfffb]',
-      // User — brighter mint glass pushed to the right, tail on the top-right.
-      'group-[.is-user]:ml-auto group-[.is-user]:rounded-tr-sm group-[.is-user]:border group-[.is-user]:border-[rgba(94,234,212,0.22)] group-[.is-user]:bg-[#7dffe0]/10 group-[.is-user]:text-[#dafff7]',
+      // Assistant (AI) — accent glass, tail on the top-left.
+      'group-[.is-assistant]:rounded-tl-sm group-[.is-assistant]:border group-[.is-assistant]:border-(--aqua)/30 group-[.is-assistant]:bg-(--aqua)/12 group-[.is-assistant]:text-(--ink)',
+      // User — bright-accent glass pushed to the right, tail on the top-right.
+      'group-[.is-user]:ml-auto group-[.is-user]:rounded-tr-sm group-[.is-user]:border group-[.is-user]:border-(--glass-line) group-[.is-user]:bg-(--mint)/15 group-[.is-user]:text-(--ink)',
       className
     )}
     {...props}
