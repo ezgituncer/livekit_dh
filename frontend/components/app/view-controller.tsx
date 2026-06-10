@@ -7,7 +7,6 @@ import { type AppConfig, SUPPORTED_LANGUAGES } from '@/app-config';
 import { AgentSessionView_01 } from '@/components/agents-ui/blocks/agent-session-view-01';
 import { DesignSwitcher } from '@/components/app/design-switcher';
 import { LanguageSelect } from '@/components/app/language-select';
-import { TypewriterText } from '@/components/app/typewriter-text';
 import { DESIGN_ACCENT } from '@/lib/design/design';
 import { useDesign } from '@/lib/design/design-context';
 import { useI18n } from '@/lib/i18n/i18n';
@@ -84,6 +83,7 @@ export function ViewController({
       <MotionSessionView
         key="session-view"
         {...VIEW_MOTION_PROPS}
+        headline={t.welcomeHeadline}
         preConnectMessage={t.agentListening}
         supportsChatInput={appConfig.supportsChatInput}
         supportsVideoInput={appConfig.supportsVideoInput}
@@ -100,11 +100,6 @@ export function ViewController({
         audioVisualizerWaveLineWidth={appConfig.audioVisualizerWaveLineWidth}
         className="fixed inset-0"
       />
-
-      {/* Headline above the avatar. */}
-      <div className="pointer-events-none fixed inset-x-0 top-[7vh] z-40 flex justify-center px-6 text-center">
-        <TypewriterText text={t.welcomeHeadline} className="max-w-prose" />
-      </div>
 
       {/* Top-right controls: theme switcher + language picker. */}
       <div className="fixed top-4 right-4 z-50 flex items-center gap-2">

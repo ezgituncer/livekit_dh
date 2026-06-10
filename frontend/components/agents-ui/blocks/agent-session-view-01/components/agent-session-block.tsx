@@ -16,6 +16,7 @@ import {
 } from '@/components/agents-ui/agent-control-bar';
 import { Shimmer } from '@/components/ai-elements/shimmer';
 import { SuggestedQuestions } from '@/components/app/suggested-questions';
+import { TypewriterText } from '@/components/app/typewriter-text';
 import { useAvatarStatus } from '@/lib/digital-human/use-avatar';
 import { cn } from '@/lib/shadcn/utils';
 import { TileLayout } from './tile-view';
@@ -111,6 +112,11 @@ export function Fade({ top = false, bottom = false, className }: FadeProps) {
 
 export interface AgentSessionView_01Props {
   /**
+   * Headline shown above the avatar on the idle/suggestions screen. Hidden once
+   * a conversation starts (chat open) so it doesn't overlap the transcript.
+   */
+  headline?: string;
+  /**
    * Message shown above the controls before the first chat message is sent.
    *
    * @default 'Agent is listening, ask it a question'
@@ -164,6 +170,7 @@ export interface AgentSessionView_01Props {
 }
 
 export function AgentSessionView_01({
+  headline,
   preConnectMessage = 'Agent is listening, ask it a question',
   supportsChatInput = true,
   supportsVideoInput = true,
@@ -276,6 +283,13 @@ export function AgentSessionView_01({
       {/* Suggested questions — category tabs + the selected category's
           questions, anchored just above the control deck so the digital human
           stays visible. Hidden while the transcript is open. */}
+      {/* Headline above the avatar — only on the idle screen (hidden once a
+          conversation starts so it doesn't overlap the transcript). */}
+      {!chatOpen && headline && (
+        <div className="pointer-events-none fixed inset-x-0 top-[7vh] z-40 flex justify-center px-6 text-center">
+          <TypewriterText text={headline} className="max-w-prose" />
+        </div>
+      )}
       {!chatOpen && avatarReady && (
         <div className="absolute inset-x-3 bottom-28 z-50 flex justify-center md:inset-x-12 md:bottom-36">
           {/* Picking a question switches to the conversation view (transcript +
