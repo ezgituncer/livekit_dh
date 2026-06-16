@@ -10,9 +10,21 @@ import { cn } from '@/lib/shadcn/utils';
 import { getAppConfig, getStyles } from '@/lib/utils';
 import '@/styles/globals.css';
 
-const publicSans = Public_Sans({
+const publicSans = localFont({
+  src: [
+    {
+      path: '../fonts/PublicSans-VariableFont_wght.ttf',
+      weight: '100 900',
+      style: 'normal',
+    },
+    {
+      path: '../fonts/PublicSans-Italic-VariableFont_wght.ttf',
+      weight: '100 900',
+      style: 'italic',
+    },
+  ],
   variable: '--font-public-sans',
-  subsets: ['latin'],
+  display: 'swap',
 });
 
 // HUD / sci-fi display font used for the status badge and accent labels.
