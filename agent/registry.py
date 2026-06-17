@@ -11,6 +11,7 @@ registry plus one entry in frontend/app-config.ts.
 from __future__ import annotations
 
 import asyncio
+import base64
 import logging
 import os
 from collections.abc import AsyncIterable
@@ -21,9 +22,11 @@ import numpy as np
 import onnxruntime as ort
 from livekit import rtc
 from livekit.agents import Agent, JobProcess, ModelSettings, llm as agents_llm, stt as agents_stt, tts as agents_tts, utils
-from livekit.agents.types import DEFAULT_API_CONNECT_OPTIONS, APIConnectOptions, TimedString
+from livekit.agents.types import DEFAULT_API_CONNECT_OPTIONS, NOT_GIVEN, APIConnectOptions, NotGivenOr, TimedString
+from livekit.agents.utils import is_given
 from livekit.plugins import azure, elevenlabs, silero
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
+from openai import AsyncOpenAI
 from transformers import WhisperFeatureExtractor
 
 logger = logging.getLogger("agent")
@@ -113,6 +116,117 @@ def _azure_stt(cfg: dict[str, Any]) -> agents_stt.STT:
         speech_region=os.getenv("AZURE_SPEECH_REGION"),
         language=_AZURE_LANGUAGE_MAP.get(lang, "en-US"),
     )
+
+
+# Language code -> English name, used to pin the transcript output language.
+_TRANSCRIBE_LANGUAGE_NAMES = {
+    "tr": "Turkish",
+    "en": "English",
+    "ar": "Arabic",
+    "es": "Spanish",
+    "pt": "Portuguese",
+    "ru": "Russian",
+}
+
+# DashScope key (also hardcoded in voice_agent_configurable.py for the realtime
+# model). Both should move to agent/.env and be rotated (see deploy.md §5.5).
+_DASHSCOPE_FALLBACK_KEY = "sk-ed9a5abfecde43a7a07005bf3400e2ff"
+
+
+class QwenOmniTranscriber(agents_stt.STT):
+    """Transcribes the user's speech by sending each captured utterance to the
+    Qwen-Omni model and asking it (via prompt) for the verbatim transcript in the
+    session language — text only, no explanation or filler.
+
+    Runs in parallel with the live conversation purely to produce the on-screen
+    caption; the realtime model still understands the audio directly and drives
+    the conversation.
+
+    NOTE: the conversation model ``qwen3.5-omni-flash-realtime`` is served over the
+    realtime WEBSOCKET and cannot take a request/response audio call, so this uses
+    the same Qwen-Omni family via the OpenAI-compatible chat endpoint. Configure
+    with env vars (so a self-hosted endpoint works later without code changes):
+      * ``ASR_MODEL``    — chat-mode omni model id (default ``qwen-omni-turbo``).
+      * ``ASR_BASE_URL`` — default DashScope international compatible-mode endpoint.
+      * ``ASR_API_KEY``  — falls back to ``API_KEY`` then the hardcoded key.
+
+    Non-streaming STT: wrap in ``stt.StreamAdapter(stt=..., vad=...)`` so a VAD
+    segments speech per utterance before each recognize() call.
+    """
+
+    def __init__(self, *, language: str | None = None) -> None:
+        super().__init__(
+            capabilities=agents_stt.STTCapabilities(streaming=False, interim_results=False)
+        )
+        self._language = language
+        self._model = os.getenv("ASR_MODEL", "qwen-omni-turbo")
+        self._client = AsyncOpenAI(
+            api_key=os.getenv("ASR_API_KEY") or os.getenv("API_KEY") or _DASHSCOPE_FALLBACK_KEY,
+            base_url=os.getenv(
+                "ASR_BASE_URL", "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+            ),
+        )
+
+    @property
+    def model(self) -> str:
+        return self._model
+
+    @property
+    def provider(self) -> str:
+        return "qwen-omni"
+
+    async def _recognize_impl(
+        self,
+        buffer: utils.AudioBuffer,
+        *,
+        language: NotGivenOr[str] = NOT_GIVEN,
+        conn_options: APIConnectOptions = DEFAULT_API_CONNECT_OPTIONS,
+    ) -> agents_stt.SpeechEvent:
+        lang = language if (is_given(language) and language) else self._language
+        lang_name = _TRANSCRIBE_LANGUAGE_NAMES.get(lang or "en", "the spoken language")
+
+        frame = rtc.combine_audio_frames(buffer)
+        wav_b64 = base64.b64encode(frame.to_wav_bytes()).decode("utf-8")
+
+        instruction = (
+            "You are a speech-to-text transcription engine. Transcribe the audio "
+            f"exactly as spoken, in {lang_name}. Output ONLY the transcript text — "
+            "no translation, no explanation, no commentary, no quotes, no filler. "
+            "If there is no intelligible speech, output nothing."
+        )
+
+        # Qwen-Omni chat models only stream output and need an explicit text
+        # modality; accumulate the streamed text deltas into the transcript.
+        text_parts: list[str] = []
+        stream = await self._client.chat.completions.create(
+            model=self._model,
+            modalities=["text"],
+            stream=True,
+            messages=[
+                {"role": "system", "content": [{"type": "text", "text": instruction}]},
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "input_audio",
+                            "input_audio": {"data": f"data:audio/wav;base64,{wav_b64}"},
+                        }
+                    ],
+                },
+            ],
+        )
+        async for chunk in stream:
+            if not chunk.choices:
+                continue
+            delta = chunk.choices[0].delta
+            if delta and delta.content:
+                text_parts.append(delta.content)
+
+        text = "".join(text_parts).strip()
+        return agents_stt.SpeechEvent(
+            type=agents_stt.SpeechEventType.FINAL_TRANSCRIPT,
+            alternatives=[agents_stt.SpeechData(language=lang or "en", text=text)],
+        )
 
 
 STT_REGISTRY: dict[str, STTEntry] = {

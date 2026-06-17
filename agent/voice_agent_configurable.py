@@ -9,6 +9,7 @@ from livekit.agents import (
     TurnHandlingOptions,
     UserStateChangedEvent,
     cli,
+    stt as agents_stt,
 )
 from livekit.agents.voice.room_io import AudioInputOptions, RoomOptions
 from livekit.plugins import openai
@@ -20,6 +21,7 @@ from registry import (
     BufferedTTS,
     ConfigurableAgent,
     DETECTOR_REGISTRY,
+    QwenOmniTranscriber,
     STT_REGISTRY,
     TTS_REGISTRY,
     VOICE_INSTRUCTIONS,
@@ -192,20 +194,39 @@ async def entrypoint(ctx: JobContext):
     if endpointing:
         turn_handling_kwargs["endpointing"] = endpointing
 
+    # Parallel caption transcriber: each user utterance's audio is sent to the
+    # Qwen-Omni model and the verbatim transcript comes back in the session
+    # language (see QwenOmniTranscriber). Display-only — the realtime model below
+    # still drives the conversation from the audio. With
+    # input_audio_transcription=None the realtime model's `user_transcription`
+    # capability is False, so the framework forwards THIS transcript to the UI;
+    # the built-in gummy events are dropped in the plugin so they don't compete
+    # (see qwen_realtime/realtime_model.py). StreamAdapter + the prewarmed VAD
+    # segment speech per utterance before each recognize() call.
+    caption_stt = None
+    vad = ctx.proc.userdata.get("vad")
+    if vad is not None:
+        
+        caption_stt = agents_stt.StreamAdapter(
+            stt=QwenOmniTranscriber(language=language or "en"), vad=vad
+        )
+        logger.warning(f"VAD is available; {caption_stt}")
+    else:
+    
+        logger.warning("VAD unavailable; user-speech caption disabled this session")
+
     session = AgentSession(
         llm=QwenRealtimeModel(
             model='qwen3.5-omni-flash-realtime',
             base_url="wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime",
             api_key="sk-ed9a5abfecde43a7a07005bf3400e2ff",
             voice="Ethan",  # erkek ses (alternatif: "Aiden")
-            # Single model: no separate input ASR. `None` (not unset) disables
-            # input transcription so the Qwen default gummy ASR is NOT applied —
-            # everything stays on qwen-omni (full-duplex speech + text). The
-            # model still understands speech; it just doesn't surface the user's
-            # words as a text transcript. The language directive in the agent
-            # instructions keeps the model's own output out of Chinese.
+            # Built-in input ASR (gummy) OFF: it can't be language-pinned and
+            # drifts to Chinese. None keeps `user_transcription` False, which is
+            # what makes the framework forward caption_stt's transcript to the UI.
             input_audio_transcription=None,
         ),
+        stt=caption_stt,
     )
 
     if audio_buffer is not None:

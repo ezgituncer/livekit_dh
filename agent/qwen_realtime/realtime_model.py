@@ -1979,6 +1979,11 @@ class RealtimeSession(
     def _handle_conversion_item_input_audio_transcription_delta(
         self, event: ConversationItemInputAudioTranscriptionDeltaEvent
     ) -> None:
+        # Built-in (gummy) input transcription is disabled in our config; the user
+        # caption comes from a separate language-pinned STT. Drop any transcription
+        # the server still streams so it doesn't reach the UI as a second caption.
+        if self._opts.input_audio_transcription is None:
+            return
         if not event.delta:
             return
 
@@ -2006,6 +2011,8 @@ class RealtimeSession(
     def _handle_conversion_item_input_audio_transcription_completed(
         self, event: ConversationItemInputAudioTranscriptionCompletedEvent
     ) -> None:
+        if self._opts.input_audio_transcription is None:
+            return  # gummy off; caption comes from the separate STT (see _delta)
         self._clear_transcript_accumulator(event.item_id, event.content_index or 0)
 
         confidence = calculate_confidence_from_logprobs(event.logprobs)
@@ -2028,6 +2035,8 @@ class RealtimeSession(
     def _handle_conversion_item_input_audio_transcription_failed(
         self, event: ConversationItemInputAudioTranscriptionFailedEvent
     ) -> None:
+        if self._opts.input_audio_transcription is None:
+            return  # gummy off; caption comes from the separate STT (see _delta)
         logger.error(
             f"{self._realtime_model._provider_label} failed to transcribe input audio",
             extra={"error": event.error},
