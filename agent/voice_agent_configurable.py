@@ -13,6 +13,7 @@ from livekit.agents import (
 from livekit.agents.voice.room_io import AudioInputOptions, RoomOptions
 from livekit.plugins import openai
 from livekit import rtc
+from openai.types.realtime import AudioTranscription
 from qwen_realtime.realtime_model import RealtimeModel as QwenRealtimeModel
 
 from registry import (
@@ -198,13 +199,20 @@ async def entrypoint(ctx: JobContext):
             base_url="wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime",
             api_key="sk-ed9a5abfecde43a7a07005bf3400e2ff",
             voice="Ethan",  # erkek ses (alternatif: "Aiden")
-            # Single model: no separate input ASR. `None` (not unset) disables
-            # input transcription so the Qwen default gummy ASR is NOT applied —
-            # everything stays on qwen-omni (full-duplex speech + text). The
-            # model still understands speech; it just doesn't surface the user's
-            # words as a text transcript. The language directive in the agent
-            # instructions keeps the model's own output out of Chinese.
-            input_audio_transcription=None,
+            # Language anchor (the real fix for wrong-language replies):
+            # qwen-omni-realtime has NO session-level language field and does NOT
+            # reliably follow the system instruction for output language — it
+            # auto-detects the spoken language and replies in that, which
+            # mis-fires (Chinese/French) on short/ambiguous input. The only
+            # reliable lever is the input transcription language. `gummy-realtime-v1`
+            # is qwen-omni's OWN built-in input ASR (same DashScope session, not a
+            # separate model); pinning its `language` forces the input to be
+            # interpreted in the selected language, which anchors the whole
+            # conversation language. Uses the session language, else "en".
+            input_audio_transcription=AudioTranscription(
+                model="gummy-realtime-v1",
+                language=language or "en",
+            ),
         ),
     )
 

@@ -222,6 +222,31 @@ export function AgentSessionView_01({
     [messages, clearedAt]
   );
 
+  // Switch to the conversation view as soon as a question is asked. Two
+  // triggers cover every input path:
+  //  (a) the agent becomes active (thinking/speaking) — the reliable signal for
+  //      VOICE questions, which may not produce a chat message immediately;
+  //  (b) the first message of a fresh segment appears (0 → >0) — covers typed /
+  //      suggested questions instantly.
+  // Both fire only on the entering transition, so a manual close (or end-call,
+  // which moves the agent OUT of an active state) isn't force-reopened.
+  const agentActive = agentState === 'thinking' || agentState === 'speaking';
+  const prevAgentActive = useRef(false);
+  useEffect(() => {
+    if (!prevAgentActive.current && agentActive) {
+      setChatOpen(true);
+    }
+    prevAgentActive.current = agentActive;
+  }, [agentActive]);
+
+  const prevVisibleCount = useRef(0);
+  useEffect(() => {
+    if (prevVisibleCount.current === 0 && visibleMessages.length > 0) {
+      setChatOpen(true);
+    }
+    prevVisibleCount.current = visibleMessages.length;
+  }, [visibleMessages.length]);
+
   const controls: AgentControlBarControls = {
     // "End call" shows only during a conversation (chatOpen); clicking it
     // returns to the suggestions screen (see onDisconnect below).

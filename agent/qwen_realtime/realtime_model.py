@@ -2046,6 +2046,13 @@ class RealtimeSession(
 
     def _handle_response_text_delta(self, event: ResponseTextDeltaEvent) -> None:
         assert self._current_generation is not None, "current_generation is None"
+        # For audio responses the spoken audio transcript
+        # (response.output_audio_transcript) is the source of truth for the shown
+        # text. Qwen-Omni also emits a separate `output_text` that can drift into
+        # a different language (e.g. Chinese) while the audio stays in the
+        # requested language — ignore it so the transcript matches the speech.
+        if "audio" in self._opts.modalities:
+            return
         item_generation = self._current_generation.messages[event.item_id]
         if (
             item_generation.audio_ch.closed
