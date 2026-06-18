@@ -1,11 +1,7 @@
 import { cache } from 'react';
 import { TokenSource } from 'livekit-client';
 import { APP_CONFIG_DEFAULTS } from '@/app-config';
-import type {
-  AdvancedSttSettings,
-  AdvancedTurnHandlingSettings,
-  AppConfig,
-} from '@/app-config';
+import type { AdvancedSttSettings, AdvancedTurnHandlingSettings, AppConfig } from '@/app-config';
 
 export const CONFIG_ENDPOINT = process.env.NEXT_PUBLIC_APP_CONFIG_ENDPOINT;
 export const SANDBOX_ID = process.env.SANDBOX_ID;
@@ -142,10 +138,7 @@ export function getAgentTokenSource(getSelection: () => AgentSelection) {
  * @param appConfig - The app configuration
  * @returns A token source for a sandboxed LiveKit session
  */
-export function getSandboxTokenSource(
-  appConfig: AppConfig,
-  getSelection: () => AgentSelection
-) {
+export function getSandboxTokenSource(appConfig: AppConfig, getSelection: () => AgentSelection) {
   return TokenSource.literal(async () => {
     const url = new URL(process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT!, window.location.origin);
     const sandboxId = appConfig.sandboxId ?? '';

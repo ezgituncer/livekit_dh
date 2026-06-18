@@ -3,17 +3,14 @@
 import * as React from 'react';
 import Link from 'next/link';
 import {
-  DEFAULT_ADVANCED_STT_SETTINGS,
-  DEFAULT_ADVANCED_TURN_HANDLING_SETTINGS,
   type AdvancedSttSettings,
   type AdvancedTurnHandlingSettings,
+  DEFAULT_ADVANCED_STT_SETTINGS,
+  DEFAULT_ADVANCED_TURN_HANDLING_SETTINGS,
   type InterruptionMode,
 } from '@/app-config';
 import { Button } from '@/components/ui/button';
-import {
-  useAdvancedSettings,
-  useAdvancedTurnHandlingSettings,
-} from '@/lib/advanced-settings';
+import { useAdvancedSettings, useAdvancedTurnHandlingSettings } from '@/lib/advanced-settings';
 
 type NumericKey = Exclude<keyof AdvancedSttSettings, 'server_vad_enabled'>;
 
@@ -301,17 +298,17 @@ export default function AdvancedSettingsPage() {
         <header className="flex flex-col gap-1">
           <h2 className="text-lg font-medium">Turn Handling</h2>
           <p className="text-muted-foreground text-sm leading-6">
-            <code>TurnHandlingOptions</code> applied to every session. Endpointing controls how long to wait after the detector
-            signals end-of-turn; interruption controls how the agent reacts when the user starts
-            speaking while it is talking.
+            <code>TurnHandlingOptions</code> applied to every session. Endpointing controls how long
+            to wait after the detector signals end-of-turn; interruption controls how the agent
+            reacts when the user starts speaking while it is talking.
           </p>
         </header>
 
         <div className="flex flex-col gap-2">
           <h3 className="text-foreground text-sm font-semibold">Endpointing</h3>
           <p className="text-muted-foreground text-xs">
-            Overrides the per-detector defaults (also applies to detectors that don’t set
-            their own).
+            Overrides the per-detector defaults (also applies to detectors that don’t set their
+            own).
           </p>
         </div>
 
@@ -350,8 +347,8 @@ export default function AdvancedSettingsPage() {
                 Enable interruption
               </label>
               <p className="text-muted-foreground text-xs">
-                When off, the user cannot interrupt the agent while it is speaking. The values
-                below are ignored.
+                When off, the user cannot interrupt the agent while it is speaking. The values below
+                are ignored.
               </p>
             </div>
             <BooleanToggle

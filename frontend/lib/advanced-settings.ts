@@ -1,9 +1,9 @@
 import * as React from 'react';
 import {
-  DEFAULT_ADVANCED_STT_SETTINGS,
-  DEFAULT_ADVANCED_TURN_HANDLING_SETTINGS,
   type AdvancedSttSettings,
   type AdvancedTurnHandlingSettings,
+  DEFAULT_ADVANCED_STT_SETTINGS,
+  DEFAULT_ADVANCED_TURN_HANDLING_SETTINGS,
   type InterruptionMode,
 } from '@/app-config';
 

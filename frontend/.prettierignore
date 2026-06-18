@@ -5,5 +5,10 @@ pnpm-lock.yaml
 .next/
 .env*
 
+# Generated digital-human avatar/style bundles (vendored runtime assets)
+public/digital-human/
+app
+components
+lib
 
 
