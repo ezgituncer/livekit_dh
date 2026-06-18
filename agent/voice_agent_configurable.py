@@ -210,7 +210,7 @@ async def entrypoint(ctx: JobContext):
         llm=QwenRealtimeModel(
             model='qwen3.5-omni-flash-realtime',
             base_url="wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime",
-            api_key="sk-ed9a5abfecde43a7a07005bf3400e2ff",
+            api_key="sk-ws-H.IPRXMX.JWhL.MEUCIQCb5388Xj49j_tVTHe5D7YtElE6VhrCGfx2nKkdH_a3OwIga-PWgqs1qTBgbQoFvOO-K2cTjoGPUm3bLya9Rw_KjtU",
             voice="Ethan",  # erkek ses (alternatif: "Aiden")
             # Language anchor (the real fix for wrong-language replies):
             # qwen-omni-realtime has NO session-level language field and does NOT
