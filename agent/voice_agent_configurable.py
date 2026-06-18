@@ -34,6 +34,15 @@ load_dotenv(".env")
 
 SUPPORTED_LANGUAGES = {"tr", "en", "ar", "es", "pt", "ru"}
 
+# Server-side VAD "noise gate" for the realtime model. `threshold` (0..1) is the
+# speech-probability level audio must exceed to be treated as speech — raise it
+# to ignore louder ambient/background noise (the "decibel limit"); lower it if
+# soft speakers get cut off. `silence_duration_ms` is how long of a pause ends a
+# turn. Overridable via the AGENT_VAD_THRESHOLD env var.
+VAD_THRESHOLD = float(os.getenv("AGENT_VAD_THRESHOLD", "0.7"))
+VAD_SILENCE_MS = int(os.getenv("AGENT_VAD_SILENCE_MS", "800"))
+VAD_PREFIX_PADDING_MS = 300
+
 # English names used to pin the model's output language in its instructions.
 _LANGUAGE_NAMES = {
     "tr": "Turkish",
@@ -217,6 +226,15 @@ async def entrypoint(ctx: JobContext):
                 model="gummy-realtime-v1",
                 language=language or "en",
             ),
+            # Noise gate: a higher VAD threshold makes the model ignore ambient
+            # / background sounds and only trigger on clear speech. Tune via the
+            # AGENT_VAD_THRESHOLD env var.
+            turn_detection={
+                "type": "server_vad",
+                "threshold": VAD_THRESHOLD,
+                "prefix_padding_ms": VAD_PREFIX_PADDING_MS,
+                "silence_duration_ms": VAD_SILENCE_MS,
+            },
         ),
     )
 
