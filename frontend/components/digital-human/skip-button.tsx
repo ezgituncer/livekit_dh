@@ -50,7 +50,7 @@ export function SkipButton({ className }: { className?: string }) {
         className
       )}
     >
-      <SkipForwardIcon className="size-3.5" />
+      <SkipForwardIcon className={cn('size-3.5', dir === 'rtl' && '-scale-x-100')} />
       {t.skip}
     </button>
   );

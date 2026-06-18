@@ -150,8 +150,8 @@ export function TileLayout({
                     delay: animationDelay,
                   }}
                   className={cn(
-                    'relative aspect-3/4 max-h-[600px] overflow-hidden rounded-2xl',
-                    chatOpen ? 'h-[40vh] md:h-[58vh]' : 'h-[62vh] md:max-h-[640px]'
+                    'relative aspect-3/4 max-h-[740px] overflow-hidden rounded-2xl',
+                    chatOpen ? 'h-[52vh] md:h-[72vh]' : 'h-[70vh] md:max-h-[740px]'
                   )}
                 >
                   <AvatarCanvas />

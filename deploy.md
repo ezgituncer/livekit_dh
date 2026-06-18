@@ -157,6 +157,32 @@ Then drop the bind-mount + dev assumptions from the `frontend` service in
 - Keep `.env` files out of version control; inject secrets via your platform's
   secret manager where possible.
 
+### 5.6 Agent worker: production mode & warm processes
+The agent currently runs in **development mode** (`docker-compose.yml`:
+`command: ["python", "voice_agent_configurable.py", "dev"]`). Dev mode shrinks
+the idle-process pool, so every session cold-starts a worker process — if that
+plus the model/Qwen connection setup exceeds the client's join timeout you get
+**"agent did not join the room."**
+
+For production:
+- Run the worker in **`start`** mode instead of `dev`:
+  ```yaml
+  command: ["python", "voice_agent_configurable.py", "start"]
+  ```
+  `start` mode honors the full idle-process pool, so prewarmed workers stay
+  ready and the agent joins instantly.
+- Keep prewarmed (idle) processes ready. The code already sets
+  `AgentServer(num_idle_processes=2)`; tune per host RAM via the env var (each
+  idle process holds the prewarmed models — Silero VAD, smart-turn ONNX, Whisper
+  feature extractor — in memory):
+  ```
+  LIVEKIT_NUM_IDLE_PROCESSES=2   # raise on big hosts, set 1 on small ones
+  ```
+- The client already retries transient agent-join failures a couple of times
+  before surfacing an error (see `frontend/hooks/useAgentErrors.tsx`).
+- Scale out by running multiple agent worker replicas behind the same LiveKit
+  server for higher concurrency.
+
 ---
 
 ## 6. Verification / Health Checks
@@ -205,6 +231,7 @@ by autoplay policy, a "Start audio" button appears.
 | Symptom | Likely cause / fix |
 |---|---|
 | Agent never connects / "did not complete initializing" | Model prewarm exceeds the init timeout, or wrong `LIVEKIT_URL`/keys. Check `docker compose logs agent`. |
+| "agent did not join the room" (intermittent) | Cold-start with no warm worker and/or a transient Qwen WS connection — see §5.6 (run in `start` mode, keep `num_idle_processes` warm). The client also auto-retries a couple of times. |
 | Token request fails (500) in production | The `/api/token` dev guard — see §5.1. |
 | No audio / mic blocked | Frontend not on HTTPS (or `localhost`). Serve over TLS (§5.4). |
 | Browser can't reach LiveKit | `LIVEKIT_URL` not publicly reachable or RTC ports closed (§5.3). |

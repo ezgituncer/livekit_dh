@@ -165,7 +165,7 @@ export function AgentControlBar({
   variant: _variant,
   ...props
 }: AgentControlBarProps & ComponentProps<'div'>) {
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
   const { send } = useChat();
   const publishPermissions = usePublishPermissions();
   const [isChatOpenUncontrolled, setIsChatOpenUncontrolled] = useState(isChatOpen);
@@ -288,7 +288,7 @@ export function AgentControlBar({
         {isSending ? (
           <Loader className="size-[18px] animate-spin" />
         ) : (
-          <SendHorizontal className="size-[18px]" />
+          <SendHorizontal className={cn('size-[18px]', dir === 'rtl' && '-scale-x-100')} />
         )}
       </button>
 

@@ -49,7 +49,11 @@ DEFAULT_TTS = "elevenlabs-multilingual-v2"
 DEFAULT_DETECTOR = "multilingual"
 
 
-server = AgentServer()
+# Keep prewarmed (idle) processes ready so the agent joins the room instantly
+# instead of cold-starting per session (which can exceed the client's
+# agent-join timeout → "agent did not join the room"). Override with the
+# LIVEKIT_NUM_IDLE_PROCESSES env var if needed.
+server = AgentServer(num_idle_processes=2)
 server.setup_fnc = prewarm
 
 
