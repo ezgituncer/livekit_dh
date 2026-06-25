@@ -34,19 +34,9 @@ const VIEW_MOTION_PROPS = {
 
 interface ViewControllerProps {
   appConfig: AppConfig;
-  selectedStt: string | undefined;
-  onSttChange: (id: string) => void;
-  selectedTts: string | undefined;
-  onTtsChange: (id: string) => void;
-  selectedDetector: string | undefined;
-  onDetectorChange: (id: string) => void;
   selectedLanguage: string | undefined;
   onLanguageChange: (code: string | undefined) => void;
   isReconnecting: boolean;
-  selectedVoice: string | undefined;
-  onVoiceChange: (id: string) => void;
-  customVoiceId: string;
-  onCustomVoiceIdChange: (id: string) => void;
 }
 
 export function ViewController({

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { AccessToken, type AccessTokenOptions, type VideoGrant } from 'livekit-server-sdk';
 import { RoomAgentDispatch, RoomConfiguration } from '@livekit/protocol';
-import { APP_CONFIG_DEFAULTS, SUPPORTED_LANGUAGES } from '@/app-config';
+import { SUPPORTED_LANGUAGES } from '@/app-config';
 
 type ConnectionDetails = {
   serverUrl: string;
@@ -16,44 +16,6 @@ const API_SECRET = process.env.LIVEKIT_API_SECRET;
 const LIVEKIT_URL = process.env.LIVEKIT_URL;
 
 const LANGUAGE_ALLOWLIST = new Set(SUPPORTED_LANGUAGES.map((l) => l.code));
-const STT_ALLOWLIST = new Set(APP_CONFIG_DEFAULTS.stts.map((s) => s.id));
-const TTS_ALLOWLIST = new Set(APP_CONFIG_DEFAULTS.ttss.map((t) => t.id));
-const DETECTOR_ALLOWLIST = new Set(APP_CONFIG_DEFAULTS.detectors.map((d) => d.id));
-
-// ElevenLabs voice IDs are opaque alphanumeric strings (~20 chars). We accept
-// either a preconfigured id or any caller-provided id that matches the format,
-// since the UI exposes a manual-entry field.
-const VOICE_ID_PATTERN = /^[A-Za-z0-9]{10,64}$/;
-
-// Bounds for the realtime STT server-VAD options. Anything outside the range
-// (or non-numeric) is dropped so the agent falls back to the model defaults.
-const SERVER_VAD_BOUNDS: Record<string, { min: number; max: number; integer?: boolean }> = {
-  vad_silence_threshold_secs: { min: 0, max: 10 },
-  vad_threshold: { min: 0, max: 1 },
-  min_speech_duration_ms: { min: 0, max: 10000, integer: true },
-  min_silence_duration_ms: { min: 0, max: 60000, integer: true },
-};
-
-// Bounds for the LiveKit AgentSession turn-handling knobs (endpointing +
-// interruption). Same drop-on-invalid policy as SERVER_VAD_BOUNDS.
-const TURN_HANDLING_BOUNDS: Record<string, { min: number; max: number; integer?: boolean }> = {
-  endpointing_min_delay: { min: 0, max: 30 },
-  endpointing_max_delay: { min: 0, max: 60 },
-  interruption_min_duration: { min: 0, max: 10 },
-  interruption_min_words: { min: 0, max: 20, integer: true },
-};
-
-const INTERRUPTION_MODE_ALLOWLIST = new Set(['adaptive', 'vad']);
-
-function pickServerVadNumber(
-  value: unknown,
-  bounds: { min: number; max: number; integer?: boolean }
-): string | undefined {
-  const num = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
-  if (!Number.isFinite(num)) return undefined;
-  if (num < bounds.min || num > bounds.max) return undefined;
-  return bounds.integer ? String(Math.round(num)) : String(num);
-}
 
 // don't cache the results
 export const revalidate = 0;
@@ -94,52 +56,8 @@ export async function POST(req: Request) {
         : undefined;
 
     const attributes: Record<string, string> = {};
-    const stt = pickAllowlisted(body?.stt, STT_ALLOWLIST);
-    if (stt) attributes.stt = stt;
-    const tts = pickAllowlisted(body?.tts, TTS_ALLOWLIST);
-    if (tts) attributes.tts = tts;
-    const detector = pickAllowlisted(body?.detector, DETECTOR_ALLOWLIST);
-    if (detector) attributes.detector = detector;
     const language = pickAllowlisted(body?.language, LANGUAGE_ALLOWLIST);
     if (language) attributes.language = language;
-    if (typeof body?.voice_id === 'string' && VOICE_ID_PATTERN.test(body.voice_id)) {
-      attributes.voice_id = body.voice_id;
-    }
-
-    // Realtime ElevenLabs STT server-VAD knobs. Sent as separate string
-    // attributes — only forwarded when STT is the realtime variant.
-    if (attributes.stt === 'elevenlabs-scribe-v2-realtime' && body?.server_vad) {
-      const enabled = body.server_vad?.server_vad_enabled;
-      if (typeof enabled === 'boolean') {
-        attributes.server_vad_enabled = enabled ? 'true' : 'false';
-      }
-      // Numeric knobs are only meaningful when server VAD is on. When off, the
-      // agent passes server_vad=None and LiveKit handles turn detection.
-      if (enabled !== false) {
-        for (const [key, bounds] of Object.entries(SERVER_VAD_BOUNDS)) {
-          const picked = pickServerVadNumber(body.server_vad?.[key], bounds);
-          if (picked !== undefined) attributes[key] = picked;
-        }
-      }
-    }
-
-    // LiveKit AgentSession turn-handling knobs. Always forwarded when present.
-    if (body?.turn_handling) {
-      const th = body.turn_handling;
-      if (typeof th.interruption_enabled === 'boolean') {
-        attributes.interruption_enabled = th.interruption_enabled ? 'true' : 'false';
-      }
-      if (
-        typeof th.interruption_mode === 'string' &&
-        INTERRUPTION_MODE_ALLOWLIST.has(th.interruption_mode)
-      ) {
-        attributes.interruption_mode = th.interruption_mode;
-      }
-      for (const [key, bounds] of Object.entries(TURN_HANDLING_BOUNDS)) {
-        const picked = pickServerVadNumber(th[key], bounds);
-        if (picked !== undefined) attributes[key] = picked;
-      }
-    }
 
     // Generate participant token
     const participantName = 'user';

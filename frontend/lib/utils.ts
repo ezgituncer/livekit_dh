@@ -1,7 +1,7 @@
 import { cache } from 'react';
 import { TokenSource } from 'livekit-client';
 import { APP_CONFIG_DEFAULTS } from '@/app-config';
-import type { AdvancedSttSettings, AdvancedTurnHandlingSettings, AppConfig } from '@/app-config';
+import type { AppConfig } from '@/app-config';
 
 export const CONFIG_ENDPOINT = process.env.NEXT_PUBLIC_APP_CONFIG_ENDPOINT;
 export const SANDBOX_ID = process.env.SANDBOX_ID;
@@ -16,13 +16,7 @@ export interface SandboxConfig {
 
 export interface AgentSelection {
   agentName: string | undefined;
-  stt: string | undefined;
-  tts: string | undefined;
-  detector: string | undefined;
   language: string | undefined;
-  voiceId: string | undefined;
-  serverVad: AdvancedSttSettings | undefined;
-  turnHandling: AdvancedTurnHandlingSettings | undefined;
 }
 
 /**
@@ -117,13 +111,7 @@ export function getAgentTokenSource(getSelection: () => AgentSelection) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         agent_name: sel.agentName,
-        stt: sel.stt,
-        tts: sel.tts,
-        detector: sel.detector,
         language: sel.language,
-        voice_id: sel.voiceId,
-        server_vad: sel.serverVad,
-        turn_handling: sel.turnHandling,
       }),
     });
     if (!res.ok) {
@@ -159,13 +147,7 @@ export function getSandboxTokenSource(appConfig: AppConfig, getSelection: () => 
         },
         body: JSON.stringify({
           room_config: roomConfig,
-          stt: sel.stt,
-          tts: sel.tts,
-          detector: sel.detector,
           language: sel.language,
-          voice_id: sel.voiceId,
-          server_vad: sel.serverVad,
-          turn_handling: sel.turnHandling,
         }),
       });
       return await res.json();

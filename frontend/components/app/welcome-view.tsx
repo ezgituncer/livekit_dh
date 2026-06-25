@@ -1,10 +1,4 @@
-import type {
-  DetectorOption,
-  LanguageOption,
-  STTOption,
-  TTSOption,
-  VoiceOption,
-} from '@/app-config';
+import type { LanguageOption } from '@/app-config';
 import { TypewriterText } from '@/components/app/typewriter-text';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n/i18n';
@@ -33,25 +27,10 @@ interface WelcomeViewProps {
   onStartCall: () => void;
   // The following are still provided by the view controller but are no longer
   // surfaced here — the landing page is intentionally static (just "Start
-  // call"). The language picker lives on the in-call view; the rest of the
-  // configuration lives on the Advanced Settings page.
-  stts?: STTOption[];
-  selectedStt?: string | undefined;
-  onSttChange?: (id: string) => void;
-  ttss?: TTSOption[];
-  selectedTts?: string | undefined;
-  onTtsChange?: (id: string) => void;
-  detectors?: DetectorOption[];
-  selectedDetector?: string | undefined;
-  onDetectorChange?: (id: string) => void;
+  // call"). The language picker lives on the in-call view.
   languages?: LanguageOption[];
   selectedLanguage?: string | undefined;
   onLanguageChange?: (code: string | undefined) => void;
-  voices?: VoiceOption[];
-  selectedVoice?: string | undefined;
-  onVoiceChange?: (id: string) => void;
-  customVoiceId?: string;
-  onCustomVoiceIdChange?: (id: string) => void;
 }
 
 export const WelcomeView = ({
