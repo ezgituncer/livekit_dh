@@ -15,6 +15,7 @@ from livekit.plugins import openai
 from livekit import rtc
 from openai.types.realtime import AudioTranscription
 from qwen_realtime.realtime_model import RealtimeModel as QwenRealtimeModel
+from transcription_flow import ConcurrentTranscriber
 
 from registry import (
     AudioBuffer,
@@ -52,7 +53,26 @@ QWEN_BASE_URL = os.getenv(
 )
 QWEN_MODEL = os.getenv("QWEN_MODEL", "qwen3.5-omni-flash-realtime")
 QWEN_VOICE = os.getenv("QWEN_VOICE", "Ethan")
+# Input-ASR model that produces the *displayed* user transcript (separate from the
+# conversation model above). Swap via env to A/B different recognizers, e.g.
+# "paraformer-realtime-v2". NOTE: this model's `language` pin is also what anchors
+# the conversation's output language — a model that ignores it may let replies drift.
+QWEN_TRANSCRIPTION_MODEL = os.getenv("QWEN_TRANSCRIPTION_MODEL", "paraformer-realtime-v2")
 
+# Concurrent transcription flow: run a SECOND realtime session (text modality
+# only) purely to transcribe the user, leveraging the omni model's own
+# comprehension instead of the dedicated input-ASR. More accurate, but streams
+# the audio to DashScope twice (~2x input-token cost on the 1M-token cap; it
+# reuses the same key pool so failover still applies). When enabled, the main
+# session's own input transcription is turned OFF so the UI shows a single
+# transcript (the better one); the reply language is anchored via instructions.
+QWEN_TRANSCRIBE_SESSION_ENABLED = (
+    os.getenv("QWEN_TRANSCRIBE_SESSION_ENABLED", "true").strip().lower()
+    in ("true", "1", "yes")
+)
+QWEN_TRANSCRIBE_SESSION_MODEL = os.getenv(
+    "QWEN_TRANSCRIBE_SESSION_MODEL", "qwen3.5-omni-plus-realtime"
+)
 
 def _qwen_api_keys() -> list[str]:
     """Ordered Qwen API-key pool from env (primary first) for automatic failover.
@@ -232,6 +252,32 @@ async def entrypoint(ctx: JobContext):
     if endpointing:
         turn_handling_kwargs["endpointing"] = endpointing
 
+    # Noise gate: a higher VAD threshold makes the model ignore ambient /
+    # background sounds and only trigger on clear speech. Tune via the
+    # AGENT_VAD_THRESHOLD env var. Shared with the concurrent transcription
+    # session so both segment utterances identically.
+    qwen_turn_detection = {
+        "type": "server_vad",
+        "threshold": VAD_THRESHOLD,
+        "prefix_padding_ms": VAD_PREFIX_PADDING_MS,
+        "silence_duration_ms": VAD_SILENCE_MS,
+    }
+
+    # Language anchor (the real fix for wrong-language replies): qwen-omni-realtime
+    # has NO session-level language field and does NOT reliably follow the system
+    # instruction for output language — it auto-detects the spoken language. Pinning
+    # the input-transcription `language` anchors the conversation language.
+    #
+    # When the concurrent transcription session is enabled it owns the displayed
+    # transcript, so we DISABLE the main session's own input ASR here to avoid two
+    # competing transcripts in the UI. The reply language is then anchored via the
+    # instruction directive below instead of via the input-transcription pin.
+    main_input_transcription = (
+        None
+        if QWEN_TRANSCRIBE_SESSION_ENABLED
+        else AudioTranscription(model=QWEN_TRANSCRIPTION_MODEL, language=language or "en")
+    )
+
     session = AgentSession(
         llm=QwenRealtimeModel(
             model=QWEN_MODEL,
@@ -239,29 +285,8 @@ async def entrypoint(ctx: JobContext):
             # Ordered key pool from env; rotates to a backup if a key is refused.
             api_keys=_qwen_api_keys(),
             voice=QWEN_VOICE,  # erkek ses (alternatif: "Aiden")
-            # Language anchor (the real fix for wrong-language replies):
-            # qwen-omni-realtime has NO session-level language field and does NOT
-            # reliably follow the system instruction for output language — it
-            # auto-detects the spoken language and replies in that, which
-            # mis-fires (Chinese/French) on short/ambiguous input. The only
-            # reliable lever is the input transcription language. `gummy-realtime-v1`
-            # is qwen-omni's OWN built-in input ASR (same DashScope session, not a
-            # separate model); pinning its `language` forces the input to be
-            # interpreted in the selected language, which anchors the whole
-            # conversation language. Uses the session language, else "en".
-            input_audio_transcription=AudioTranscription(
-                model="gummy-realtime-v1",
-                language=language or "en",
-            ),
-            # Noise gate: a higher VAD threshold makes the model ignore ambient
-            # / background sounds and only trigger on clear speech. Tune via the
-            # AGENT_VAD_THRESHOLD env var.
-            turn_detection={
-                "type": "server_vad",
-                "threshold": VAD_THRESHOLD,
-                "prefix_padding_ms": VAD_PREFIX_PADDING_MS,
-                "silence_duration_ms": VAD_SILENCE_MS,
-            },
+            input_audio_transcription=main_input_transcription,
+            turn_detection=qwen_turn_detection,
         ),
     )
 
@@ -306,6 +331,33 @@ async def entrypoint(ctx: JobContext):
         )
 
     await session.start(**start_kwargs)
+
+    # Concurrent transcription flow (additive, fully isolated): a second realtime
+    # session transcribes the same user audio with text-only output and publishes
+    # it as the user transcript. Any failure here is logged and swallowed inside
+    # ConcurrentTranscriber, so it can never block or break the main session above.
+    if QWEN_TRANSCRIBE_SESSION_ENABLED:
+        try:
+            transcriber = ConcurrentTranscriber(
+                room=ctx.room,
+                participant=participant,
+                model=QWEN_TRANSCRIBE_SESSION_MODEL,
+                base_url=QWEN_BASE_URL,
+                api_keys=_qwen_api_keys(),
+                turn_detection=qwen_turn_detection,
+                language=language,
+            )
+            transcriber.start()
+
+            async def _close_transcriber() -> None:
+                await transcriber.aclose()
+
+            ctx.add_shutdown_callback(_close_transcriber)
+            logger.info(
+                "Concurrent transcription enabled (model=%s)", QWEN_TRANSCRIBE_SESSION_MODEL
+            )
+        except Exception:
+            logger.exception("Failed to start concurrent transcription; main flow unaffected")
 
 
 if __name__ == "__main__":
