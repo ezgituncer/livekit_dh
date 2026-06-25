@@ -55,19 +55,33 @@ LIVEKIT_API_KEY=<your key>         # must match livekit.yaml + frontend
 LIVEKIT_API_SECRET=<your secret>
 
 # Conversation model (Qwen-Omni realtime via DashScope)
-API_KEY=<your DashScope key>
-BASE_URL=wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime
-MODEL_NAME=qwen3.5-omni-flash-realtime
+# Ordered key pool, primary first, comma-separated. The agent fails over to the
+# next key when one stops working (see the two failure modes below). One key works too.
+QWEN_API_KEYS=<primary DashScope key>,<backup DashScope key>
+QWEN_BASE_URL=wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime   # optional override
+QWEN_MODEL=qwen3.5-omni-flash-realtime                               # optional override
+QWEN_VOICE=Ethan                                                     # optional override
+QWEN_KEY_ROTATE_MARKERS=                                             # optional extra in-band error markers
+QWEN_KEY_DEAD_CONN_SECONDS=8                                         # optional: dead-key detector window
+QWEN_KEY_DEAD_CONN_LIMIT=3                                           # optional: drops-in-a-row before rotating
 
 # Optional — only if you re-enable ElevenLabs/Azure providers (unused by default)
 ELEVEN_API_KEY=
 AZURE_SPEECH_KEY=
 AZURE_SPEECH_REGION=
 ```
-> ⚠️ The Qwen endpoint/model/API key are currently **hardcoded** in
-> `agent/voice_agent_configurable.py`. Before a real deployment, move them to the
-> env vars above (read via `os.getenv`) and **rotate the committed key** — it is
-> exposed in source history.
+> The Qwen keys are read from `QWEN_API_KEYS` in `agent/.env` (the previously
+> hardcoded key has been removed from `agent/voice_agent_configurable.py`). The
+> agent rotates to the next key automatically — at session start **and** mid-call
+> (it reconnects and replays the conversation) — for two distinct failure modes:
+> 1. **Revoked / invalid key** → the websocket handshake is rejected with HTTP
+>    401/403/429.
+> 2. **Exhausted quota** (the 1M-token cap) → the handshake *succeeds*, then the
+>    DashScope server drops the socket immediately (observed close codes 1006/1002).
+>    This is detected as repeated connections dying right after connect (tunable via
+>    `QWEN_KEY_DEAD_CONN_SECONDS` / `QWEN_KEY_DEAD_CONN_LIMIT`).
+>
+> **Still rotate the previously committed key**: it remains exposed in source history.
 
 ### 3.3 `livekit.yaml` (LiveKit server config)
 The committed file uses a **development key** (`devkey` / `secretsecret...`).
@@ -152,8 +166,15 @@ Then drop the bind-mount + dev assumptions from the `frontend` service in
 - Map your domain (e.g. `https://app.example.com`) to the frontend container.
 
 ### 5.5 Secrets hygiene
-- Move the Qwen credentials out of source into `agent/.env` and **rotate** the
-  committed key.
+- Qwen credentials now live in `agent/.env` (`QWEN_API_KEYS`); the hardcoded key
+  has been removed from source. **Rotate** the previously committed key — it is
+  still exposed in git history.
+- Provide a backup key (second entry in `QWEN_API_KEYS`) so a session survives a
+  key hitting its 1M-token cap. Failover is reactive and covers both a refused
+  handshake (401/403/429) and an exhausted key (handshake OK, socket dropped
+  immediately — see §3.2). If a future quota error ever arrives as an in-band error
+  event instead, copy its text into `QWEN_KEY_ROTATE_MARKERS` (watch the agent logs
+  for the "did not match any key-rotate marker" warning).
 - Keep `.env` files out of version control; inject secrets via your platform's
   secret manager where possible.
 

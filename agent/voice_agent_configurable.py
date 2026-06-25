@@ -43,6 +43,32 @@ VAD_THRESHOLD = float(os.getenv("AGENT_VAD_THRESHOLD", "0.7"))
 VAD_SILENCE_MS = int(os.getenv("AGENT_VAD_SILENCE_MS", "800"))
 VAD_PREFIX_PADDING_MS = 300
 
+# Qwen-Omni realtime connection. Keys come from the environment (never committed to
+# source); the agent fails over to the next key when one is refused — e.g. when its
+# 1M-token quota is exhausted, which DashScope surfaces as HTTP 401 at the websocket
+# handshake. Model/base_url/voice default to the previous hardcoded values.
+QWEN_BASE_URL = os.getenv(
+    "QWEN_BASE_URL", "wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime"
+)
+QWEN_MODEL = os.getenv("QWEN_MODEL", "qwen3.5-omni-flash-realtime")
+QWEN_VOICE = os.getenv("QWEN_VOICE", "Ethan")
+
+
+def _qwen_api_keys() -> list[str]:
+    """Ordered Qwen API-key pool from env (primary first) for automatic failover.
+
+    Reads ``QWEN_API_KEYS`` (comma-separated); falls back to a single ``QWEN_API_KEY``.
+    Raises if none are set so we never silently fall back to a baked-in key.
+    """
+    raw = os.getenv("QWEN_API_KEYS") or os.getenv("QWEN_API_KEY") or ""
+    keys = [k.strip() for k in raw.split(",") if k.strip()]
+    if not keys:
+        raise RuntimeError(
+            "No Qwen API key configured. Set QWEN_API_KEYS (comma-separated, primary "
+            "first) or QWEN_API_KEY in agent/.env."
+        )
+    return keys
+
 # English names used to pin the model's output language in its instructions.
 _LANGUAGE_NAMES = {
     "tr": "Turkish",
@@ -208,10 +234,11 @@ async def entrypoint(ctx: JobContext):
 
     session = AgentSession(
         llm=QwenRealtimeModel(
-            model='qwen3.5-omni-flash-realtime',
-            base_url="wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime",
-            api_key="sk-ws-H.IPRXMX.JWhL.MEUCIQCb5388Xj49j_tVTHe5D7YtElE6VhrCGfx2nKkdH_a3OwIga-PWgqs1qTBgbQoFvOO-K2cTjoGPUm3bLya9Rw_KjtU",
-            voice="Ethan",  # erkek ses (alternatif: "Aiden")
+            model=QWEN_MODEL,
+            base_url=QWEN_BASE_URL,
+            # Ordered key pool from env; rotates to a backup if a key is refused.
+            api_keys=_qwen_api_keys(),
+            voice=QWEN_VOICE,  # erkek ses (alternatif: "Aiden")
             # Language anchor (the real fix for wrong-language replies):
             # qwen-omni-realtime has NO session-level language field and does NOT
             # reliably follow the system instruction for output language — it

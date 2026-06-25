@@ -9,7 +9,7 @@ import os
 import time
 import weakref
 from collections.abc import Iterator
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from typing import Any, Literal, overload
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
@@ -131,6 +131,44 @@ QWEN_DEFAULT_VOICE = "Cherry"
 QWEN_DEFAULT_TRANSCRIPTION_MODEL = "gummy-realtime-v1"
 
 lk_oai_debug = int(os.getenv("LK_OPENAI_DEBUG", 0))
+
+# HTTP handshake statuses that mean "this key is refused → rotate to the next one".
+# A truly invalid/revoked DashScope key returns 401 at the websocket handshake.
+KEY_ROTATE_HTTP_STATUSES = (401, 403, 429)
+
+# An *exhausted* DashScope key (quota used up) behaves differently: the handshake
+# succeeds, `session.created` arrives, then the server immediately drops the socket
+# (close code 1006) — no 401, no in-band error event. We detect this as a key that
+# connects but whose connection dies within KEY_DEAD_SHORT_CONN_SECONDS without doing
+# useful work; KEY_DEAD_CONSECUTIVE_LIMIT such drops in a row → rotate to the next key.
+KEY_DEAD_SHORT_CONN_SECONDS = float(os.getenv("QWEN_KEY_DEAD_CONN_SECONDS", "8"))
+KEY_DEAD_CONSECUTIVE_LIMIT = int(os.getenv("QWEN_KEY_DEAD_CONN_LIMIT", "3"))
+
+# Built-in substrings (case-insensitive) that mark an *in-band* error event as a
+# dead key. Used by the secondary failover path only. Operators can append more via
+# the QWEN_KEY_ROTATE_MARKERS env var once the real exhaustion error is observed.
+_DEFAULT_KEY_ROTATE_MARKERS = (
+    "insufficient_quota",
+    "inference_rate_limit_exceeded",
+    "rate_limit",
+    "quota",
+    "arrearage",
+    "exceeded",
+    "invalid_api_key",
+    "expired",
+    "unauthorized",
+    "permission",
+)
+
+
+def _key_rotate_markers() -> tuple[str, ...]:
+    """Built-in rotate markers plus any from QWEN_KEY_ROTATE_MARKERS (comma-sep)."""
+    extra = [
+        m.strip().lower()
+        for m in os.getenv("QWEN_KEY_ROTATE_MARKERS", "").split(",")
+        if m.strip()
+    ]
+    return tuple(_DEFAULT_KEY_ROTATE_MARKERS) + tuple(extra)
 
 # Azure OpenAI Realtime API uses old-style (beta) event names.
 # This mapping normalizes them to the current OpenAI GA event names
@@ -351,6 +389,10 @@ class _RealtimeOptions:
     is_qwen: bool = False
     """Qwen-Omni-Realtime (DashScope) endpoint: uses the legacy flat session shape
     and legacy event names."""
+    api_keys: list[str] = field(default_factory=list)
+    """Ordered pool of API keys (primary first) for automatic failover when a key is
+    refused (e.g. exhausted quota → HTTP 401 at the websocket handshake). `api_key`
+    above is always the *currently active* key; this list holds all of them."""
 
 
 @dataclass
@@ -459,6 +501,7 @@ class RealtimeModel(llm.RealtimeModel):
         truncation: NotGivenOr[RealtimeTruncation | None] = NOT_GIVEN,
         reasoning: NotGivenOr[RealtimeReasoning | None] = NOT_GIVEN,
         api_key: str | None = None,
+        api_keys: list[str] | None = None,
         http_session: aiohttp.ClientSession | None = None,
         azure_deployment: str | None = None,
         entra_token: str | None = None,
@@ -549,12 +592,21 @@ class RealtimeModel(llm.RealtimeModel):
             api_version is not None or entra_token is not None or azure_deployment is not None
         )
 
-        api_key = api_key or os.environ.get("OPENAI_API_KEY")
-        if api_key is None and not is_azure:
+        # Build the ordered key pool used for automatic failover. The explicit
+        # `api_keys` list takes priority; otherwise fall back to the single
+        # `api_key` / OPENAI_API_KEY (preserves all existing single-key callers).
+        keys = [k.strip() for k in (api_keys or []) if k and k.strip()]
+        if not keys:
+            single = api_key or os.environ.get("OPENAI_API_KEY")
+            keys = [single] if single else []
+        if not keys and not is_azure:
             raise ValueError(
                 "The api_key client option must be set either by passing api_key "
-                "to the client or by setting the OPENAI_API_KEY environment variable"
+                "(or api_keys) to the client or by setting the OPENAI_API_KEY "
+                "environment variable"
             )
+        # The active key is always the first in the pool.
+        api_key = keys[0] if keys else None
 
         if is_given(base_url):
             base_url_val = base_url
@@ -592,6 +644,7 @@ class RealtimeModel(llm.RealtimeModel):
             input_audio_noise_reduction=to_noise_reduction(input_audio_noise_reduction),
             turn_detection=to_turn_detection(turn_detection),
             api_key=api_key,
+            api_keys=keys,
             base_url=base_url_val,
             is_azure=is_azure,
             azure_deployment=azure_deployment,
@@ -937,6 +990,21 @@ class RealtimeSession(
         self._realtime_model: RealtimeModel = realtime_model
         # per-session copy of opts so update_options can diff against session's own state
         self._opts = replace(realtime_model._opts)
+
+        # --- API-key failover state ---------------------------------------
+        # `_opts.api_keys` is the ordered pool; `_opts.api_key` is the active one.
+        # When the active key is refused (e.g. quota exhausted → HTTP 401 at the
+        # handshake), we advance the index and reconnect with the next key.
+        self._key_index = 0
+        self._rotate_key_event = asyncio.Event()
+        # Counts consecutive connections that died right after connecting — the
+        # signature of an exhausted key (handshake OK, socket dropped immediately).
+        self._consecutive_failed_conns = 0
+        # Substrings (case-insensitive) that mark an *in-band* error as "this key is
+        # dead, rotate". Only used by the secondary path; the primary path keys off
+        # the HTTP handshake status. Extendable via QWEN_KEY_ROTATE_MARKERS.
+        self._rotate_markers = _key_rotate_markers()
+
         self._tools = llm.ToolContext.empty()
         self._msg_ch = utils.aio.Chan[RealtimeClientEvent | dict[str, Any]]()
         self._input_resampler: rtc.AudioResampler | None = None
@@ -963,6 +1031,49 @@ class RealtimeSession(
             SAMPLE_RATE, NUM_CHANNELS, samples_per_channel=SAMPLE_RATE // 10
         )
         self._pushed_duration_s: float = 0  # duration of audio pushed to the OpenAI Realtime API
+
+    def _rotate_to_next_key(self, reason: str) -> bool:
+        """Advance the active API key to the next one in the pool.
+
+        Returns True if a fresh key was selected, False if the pool is exhausted.
+        Never logs the key material itself.
+        """
+        keys = self._opts.api_keys
+        if self._key_index + 1 >= len(keys):
+            logger.warning(
+                "all %d Qwen API key(s) exhausted (last failure: %s); no backup left",
+                len(keys),
+                reason,
+            )
+            return False
+        self._key_index += 1
+        self._opts.api_key = keys[self._key_index]
+        logger.warning(
+            "rotating Qwen API key %d/%d due to %s",
+            self._key_index + 1,
+            len(keys),
+            reason,
+        )
+        return True
+
+    def _maybe_rotate(self, error_text: str) -> None:
+        """Secondary failover: rotate if an in-band error matches a known marker.
+
+        Triggers a reconnect via `_rotate_key_event` so `_run_ws` re-establishes the
+        socket with the new key. Logs unmatched errors so the marker set can grow.
+        """
+        if not error_text:
+            return
+        lowered = error_text.lower()
+        if any(marker in lowered for marker in self._rotate_markers):
+            if self._rotate_to_next_key(f"in-band error: {error_text}"):
+                self._rotate_key_event.set()
+        else:
+            logger.warning(
+                "Qwen error did not match any key-rotate marker; if this indicates "
+                "an exhausted key, add a substring to QWEN_KEY_ROTATE_MARKERS: %s",
+                error_text,
+            )
 
     def send_event(self, event: RealtimeClientEvent | dict[str, Any]) -> None:
         with contextlib.suppress(utils.aio.channel.ChanClosed):
@@ -1035,15 +1146,55 @@ class RealtimeSession(
             self.emit("session_reconnected", llm.RealtimeSessionReconnectedEvent())
 
         reconnecting = False
+        conn_start: float | None = None
         while not self._msg_ch.closed:
             try:
                 ws_conn = await self._create_ws_conn()
                 if reconnecting:
                     await _reconnect()
                     num_retries = 0  # reset the retry counter
+                conn_start = time.perf_counter()
                 await self._run_ws(ws_conn)
+                # Graceful return (timeout-based reconnect or in-band rotation): the
+                # connection was healthy, so clear the dead-connection counter.
+                self._consecutive_failed_conns = 0
 
             except APIError as e:
+                # (1) Connect-time rotation already happened (handshake 401/403/429):
+                # reconnect immediately with the freshly-selected key, without spending
+                # the retry budget. `reconnecting` is already True mid-session, so
+                # `_reconnect()` will replay session config + chat context.
+                if getattr(e, "_key_rotated", False):
+                    self._emit_error(e, recoverable=True)
+                    num_retries = 0
+                    continue
+
+                # (2) Dead-key detection: an *exhausted* key connects fine but the
+                # server drops the socket almost immediately (no 401, no error event).
+                # Count consecutive short-lived connections; once the limit is hit,
+                # rotate to the next key. A healthy key keeps the socket open for far
+                # longer than the threshold, so its counter stays at zero.
+                lifetime = time.perf_counter() - conn_start if conn_start is not None else None
+                if lifetime is not None and lifetime < KEY_DEAD_SHORT_CONN_SECONDS:
+                    self._consecutive_failed_conns += 1
+                else:
+                    self._consecutive_failed_conns = 0
+                if self._consecutive_failed_conns >= KEY_DEAD_CONSECUTIVE_LIMIT:
+                    rotated = self._rotate_to_next_key(
+                        f"connection dropped {self._consecutive_failed_conns}x within "
+                        f"{KEY_DEAD_SHORT_CONN_SECONDS:.0f}s of connecting "
+                        f"(last: {e})"
+                    )
+                    # Reset either way: on success the new key starts fresh; on
+                    # failure (no backup left) this throttles the warning to once
+                    # per N drops instead of every drop.
+                    self._consecutive_failed_conns = 0
+                    if rotated:
+                        self._emit_error(e, recoverable=True)
+                        num_retries = 0
+                        continue
+                    # no backup key left → fall through to normal retry/raise handling
+
                 if max_retries == 0 or not e.retryable:
                     self._emit_error(e, recoverable=False)
                     raise
@@ -1100,6 +1251,30 @@ class RealtimeSession(
             )
             self._report_connection_acquired(time.perf_counter() - t0)
             return ws
+        except aiohttp.WSServerHandshakeError as e:
+            # A refused key surfaces here as a non-101 handshake response. An
+            # exhausted/invalid DashScope key returns HTTP 401 ("Unexpected server
+            # response: 401"); 403/429 are treated the same. Rotate to the next key
+            # and let _main_task reconnect; if none remain, fail fast.
+            status = getattr(e, "status", None) or getattr(e, "code", None)
+            if status in KEY_ROTATE_HTTP_STATUSES:
+                if self._rotate_to_next_key(f"handshake {status}"):
+                    err = APIConnectionError(
+                        f"{self._realtime_model._provider_label} key refused "
+                        f"(status {status}); rotated to backup key"
+                    )
+                    err._key_rotated = True  # type: ignore[attr-defined]
+                    raise err from e
+                raise APIConnectionError(
+                    message=(
+                        f"all {len(self._opts.api_keys)} {self._realtime_model._provider_label} "
+                        f"API key(s) rejected (last status {status})"
+                    ),
+                    retryable=False,
+                ) from e
+            raise APIConnectionError(
+                f"{self._realtime_model._provider_label} handshake error (status {status})"
+            ) from e
         except aiohttp.ClientError as e:
             raise APIConnectionError(
                 f"{self._realtime_model._provider_label} client connection error"
@@ -1156,7 +1331,10 @@ class RealtimeSession(
 
                     # this will trigger a reconnection
                     raise APIConnectionError(
-                        message=f"{self._realtime_model._provider_label} connection closed unexpectedly"
+                        message=(
+                            f"{self._realtime_model._provider_label} connection closed "
+                            f"unexpectedly (code {ws_conn.close_code})"
+                        )
                     )
 
                 if msg.type != aiohttp.WSMsgType.TEXT:
@@ -1255,6 +1433,12 @@ class RealtimeSession(
             asyncio.create_task(_recv_task(), name="_recv_task"),
             asyncio.create_task(_send_task(), name="_send_task"),
         ]
+        # Secondary failover: if an in-band error rotated the active key (the key was
+        # already advanced by `_maybe_rotate`), this fires so we tear down the socket
+        # and let `_main_task` reconnect with the new key. The primary failover path
+        # (HTTP 401 at the handshake) doesn't need this — it acts before `_run_ws`.
+        rotate_task = asyncio.create_task(self._rotate_key_event.wait(), name="_rotate_task")
+        tasks.append(rotate_task)
         wait_reconnect_task: asyncio.Task | None = None
         if self._opts.max_session_duration is not None:
             wait_reconnect_task = asyncio.create_task(
@@ -1265,15 +1449,21 @@ class RealtimeSession(
         try:
             done, _ = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
 
-            # propagate exceptions from completed tasks
-            for task in done:
-                if task != wait_reconnect_task:
-                    task.result()
-
-            if wait_reconnect_task and wait_reconnect_task in done and self._current_generation:
-                # wait for the current generation to complete before reconnecting
-                await self._current_generation._done_fut
+            if rotate_task in done:
+                # Key already advanced; reconnect cleanly with the new key. Mark the
+                # close as expected and reset the event for the reconnected session.
                 closing = True
+                self._rotate_key_event.clear()
+            else:
+                # propagate exceptions from completed tasks
+                for task in done:
+                    if task not in (wait_reconnect_task, rotate_task):
+                        task.result()
+
+                if wait_reconnect_task and wait_reconnect_task in done and self._current_generation:
+                    # wait for the current generation to complete before reconnecting
+                    await self._current_generation._done_fut
+                    closing = True
 
         finally:
             await utils.aio.cancel_and_wait(*tasks)
@@ -2233,6 +2423,9 @@ class RealtimeSession(
             else:
                 error_body = None
                 message = f"{provider_label} response failed with unknown error"
+            # Secondary key failover: if the failure looks like an exhausted/refused
+            # key, rotate to the next one (no-op for non-Qwen / single-key sessions).
+            self._maybe_rotate(f"{error_type if error_body is not None else ''} {error_body}")
             self._emit_error(
                 APIError(
                     message=message,
@@ -2279,6 +2472,20 @@ class RealtimeSession(
             # set exception for the response future if it exists
             if not fut.done():
                 fut.set_exception(llm.RealtimeError(event.error.message))
+
+        # Secondary key failover: rotate if the in-band error looks like an exhausted
+        # / refused key (no-op for non-Qwen / single-key sessions).
+        self._maybe_rotate(
+            " ".join(
+                str(part)
+                for part in (
+                    getattr(event.error, "code", None),
+                    getattr(event.error, "type", None),
+                    event.error.message,
+                )
+                if part
+            )
+        )
 
         self._emit_error(
             APIError(
