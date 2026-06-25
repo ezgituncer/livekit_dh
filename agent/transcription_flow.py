@@ -28,23 +28,43 @@ import logging
 
 from livekit import rtc
 from livekit.agents import llm, utils
+from openai.types.realtime import AudioTranscription
 
 from qwen_realtime.realtime_model import RealtimeModel as QwenRealtimeModel
 
 logger = logging.getLogger("agent.transcription")
 
+# Input-ASR sub-model used purely as a LANGUAGE ANCHOR on the transcription session.
+# qwen-omni auto-detects the spoken language and ignores prompt instructions, drifting
+# to Chinese on short/ambiguous input. Pinning this sub-model's `language` (the same
+# lever the main session uses) forces the model to interpret — and transcribe — in the
+# selected UI language. The displayed transcript still comes from the omni response.
+_LANGUAGE_ANCHOR_MODEL = "paraformer-realtime-v2"
 
-# The dedicated transcription instruction (verbatim from the product spec).
-TRANSCRIPTION_PROMPT = (
-    "You are a dedicated transcription model.\n"
-    "Your only task is to transcribe the user's spoken audio accurately.\n"
-    "Return only the transcript text.\n"
-    "Do not answer, explain, summarize, translate, or add labels.\n"
-    "Preserve the spoken language.\n"
-    "If the user speaks Turkish, return Turkish text.\n"
-    "Use natural punctuation where possible.\n"
-    "If a word is unclear, infer from context only when reasonably confident."
-)
+
+def build_transcription_prompt(language_name: str | None) -> str:
+    """Build the transcriber's system prompt, naming the expected language.
+
+    This is the *soft* anchor; the hard anchor is the pinned input-transcription
+    language (see `_LANGUAGE_ANCHOR_MODEL`). Naming the language here reinforces it.
+    """
+    if language_name:
+        language_line = (
+            f"The user is speaking {language_name}. "
+            f"Always return the transcript in {language_name}."
+        )
+    else:
+        language_line = "Transcribe in the same language the user is speaking."
+    return (
+        "You are a dedicated transcription model.\n"
+        "Your only task is to transcribe the user's spoken audio accurately, word for word.\n"
+        f"{language_line}\n"
+        "Never output Chinese characters unless the speaker is actually speaking "
+        "Chinese, and never translate into another language.\n"
+        "Return only the transcript text. Do not answer, explain, summarize, or add labels.\n"
+        "Use natural punctuation where possible.\n"
+        "If a word is unclear, infer from context only when reasonably confident."
+    )
 
 
 # AudioStream is resampled inside RealtimeSession.push_audio anyway; 24 kHz mono
@@ -73,6 +93,7 @@ class ConcurrentTranscriber:
         api_keys: list[str],
         turn_detection: dict,
         language: str | None = None,
+        language_name: str | None = None,
     ) -> None:
         self._room = room
         self._participant = participant
@@ -81,6 +102,7 @@ class ConcurrentTranscriber:
         self._api_keys = api_keys
         self._turn_detection = turn_detection
         self._language = language or ""
+        self._prompt = build_transcription_prompt(language_name)
 
         self._rt_model: QwenRealtimeModel | None = None
         self._session = None  # qwen RealtimeSession
@@ -127,11 +149,17 @@ class ConcurrentTranscriber:
                 # Same server-side VAD as the main session so utterances segment
                 # consistently; server auto-creates a (text) response per turn.
                 turn_detection=self._turn_detection,
-                # No input-ASR sub-model — the transcript IS the model's response.
-                input_audio_transcription=None,
+                # HARD language anchor: pin the input-transcription language to the
+                # UI language so the model interprets/transcribes in that language
+                # instead of auto-detecting and drifting to Chinese. We still read the
+                # transcript from the omni response (generation_created), not this ASR.
+                input_audio_transcription=AudioTranscription(
+                    model=_LANGUAGE_ANCHOR_MODEL,
+                    language=self._language or "en",
+                ),
             )
             self._session = self._rt_model.session()
-            await self._session.update_instructions(TRANSCRIPTION_PROMPT)
+            await self._session.update_instructions(self._prompt)
             self._session.on("generation_created", self._on_generation_created)
 
             track = await self._resolve_audio_track()

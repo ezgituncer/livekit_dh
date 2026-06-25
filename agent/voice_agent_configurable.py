@@ -41,7 +41,7 @@ SUPPORTED_LANGUAGES = {"tr", "en", "ar", "es", "pt", "ru"}
 # soft speakers get cut off. `silence_duration_ms` is how long of a pause ends a
 # turn. Overridable via the AGENT_VAD_THRESHOLD env var.
 VAD_THRESHOLD = float(os.getenv("AGENT_VAD_THRESHOLD", "0.7"))
-VAD_SILENCE_MS = int(os.getenv("AGENT_VAD_SILENCE_MS", "800"))
+VAD_SILENCE_MS = int(os.getenv("AGENT_VAD_SILENCE_MS", "1200"))
 VAD_PREFIX_PADDING_MS = 300
 
 # Qwen-Omni realtime connection. Keys come from the environment (never committed to
@@ -51,7 +51,7 @@ VAD_PREFIX_PADDING_MS = 300
 QWEN_BASE_URL = os.getenv(
     "QWEN_BASE_URL", "wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime"
 )
-QWEN_MODEL = os.getenv("QWEN_MODEL", "qwen3.5-omni-flash-realtime")
+QWEN_MODEL = os.getenv("QWEN_MODEL", "qwen3.5-omni-plus-realtime")
 QWEN_VOICE = os.getenv("QWEN_VOICE", "Ethan")
 # Input-ASR model that produces the *displayed* user transcript (separate from the
 # conversation model above). Swap via env to A/B different recognizers, e.g.
@@ -346,6 +346,7 @@ async def entrypoint(ctx: JobContext):
                 api_keys=_qwen_api_keys(),
                 turn_detection=qwen_turn_detection,
                 language=language,
+                language_name=lang_name,
             )
             transcriber.start()
 

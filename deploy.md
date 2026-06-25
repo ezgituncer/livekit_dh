@@ -59,7 +59,7 @@ LIVEKIT_API_SECRET=<your secret>
 # next key when one stops working (see the two failure modes below). One key works too.
 QWEN_API_KEYS=<primary DashScope key>,<backup DashScope key>
 QWEN_BASE_URL=wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime   # optional override
-QWEN_MODEL=qwen3.5-omni-flash-realtime                               # optional override
+QWEN_MODEL=qwen3.5-omni-plus-realtime                                # optional override
 QWEN_VOICE=Ethan                                                     # optional override
 QWEN_TRANSCRIPTION_MODEL=gummy-realtime-v1                           # input-ASR for the displayed transcript
 QWEN_TRANSCRIBE_SESSION_ENABLED=true                                 # 2nd realtime session transcribes (text-only)
