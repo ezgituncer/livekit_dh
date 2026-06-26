@@ -112,11 +112,12 @@ async def entrypoint(ctx: JobContext):
     # realtime streaming, Turkish-capable, and brand-aware via keyterm prompting.
     # qwen-omni still drives the conversation; its built-in input ASR is disabled
     # (input_audio_transcription=None) so the framework uses Deepgram's transcript.
-    stt = deepgram.STT(
-        model=DEEPGRAM_MODEL,
-        language=language or "en",
-        keyterm=BRAND_TERMS,
-    )
+    # keyterm prompting is Nova-3-only — pass it only when applicable so overriding
+    # DEEPGRAM_MODEL to a non-Nova-3 model doesn't crash session setup.
+    stt_kwargs: dict = {"model": DEEPGRAM_MODEL, "language": language or "en"}
+    if BRAND_TERMS and DEEPGRAM_MODEL.startswith("nova-3"):
+        stt_kwargs["keyterm"] = BRAND_TERMS
+    stt = deepgram.STT(**stt_kwargs)
 
     logger.info(
         "Composing session: language=%s stt=deepgram:%s keyterms=%s vad_prefix_padding_ms=%s",

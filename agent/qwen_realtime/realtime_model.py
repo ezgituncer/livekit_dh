@@ -2201,12 +2201,11 @@ class RealtimeSession(
     def _handle_conversion_item_input_audio_transcription_completed(
         self, event: ConversationItemInputAudioTranscriptionCompletedEvent
     ) -> None:
+        self._clear_transcript_accumulator(event.item_id, event.content_index or 0)
         # See _handle_..._delta: when transcription wasn't requested, an external STT
         # owns the displayed transcript; suppress qwen's own to avoid a duplicate.
         if self._opts.input_audio_transcription is None:
-            self._clear_transcript_accumulator(event.item_id, event.content_index or 0)
             return
-        self._clear_transcript_accumulator(event.item_id, event.content_index or 0)
 
         confidence = calculate_confidence_from_logprobs(event.logprobs)
 
