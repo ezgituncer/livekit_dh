@@ -218,7 +218,13 @@ export function AgentSessionView_01({
   };
 
   const visibleMessages = useMemo(
-    () => messages.filter((m) => new Date(m.timestamp).getTime() > clearedAt),
+    () =>
+      messages
+        .filter((m) => new Date(m.timestamp).getTime() > clearedAt)
+        // Spoken-user transcripts (ASR) are unreliable and display-only, so hide
+        // them. Typed messages ('chatMessage') and agent replies ('agentTranscript')
+        // are kept.
+        .filter((m) => m.type !== 'userTranscript'),
     [messages, clearedAt]
   );
 
