@@ -41,40 +41,8 @@ VOICE_INSTRUCTIONS = (
 )
 
 
-# --- Separate-STT transcriber (omni_transcriber.py) ------------------------
-# Brand/product terms to bias the displayed transcript toward correct spelling.
-# Empty for now — add terms (e.g. "Huawei", "MatePad", "HarmonyOS") to fix
-# brand-name transcription. This works in any language (it's an LLM prompt hint,
-# not a fixed hot-word list).
+# --- ASR keyterm boosting --------------------------------------------------
+# Brand/product terms to boost recognition accuracy for. Fed to Deepgram's
+# keyterm prompting (Nova-3) so names like these are transcribed correctly.
+# Add more as needed (e.g. "MatePad", "HarmonyOS").
 BRAND_TERMS: list[str] = ["Huawei", "Vodafone"]
-
-_TRANSCRIBER_LANGUAGE_NAMES = {
-    "tr": "Turkish",
-    "en": "English",
-    "ar": "Arabic",
-    "es": "Spanish",
-    "pt": "Portuguese",
-    "ru": "Russian",
-}
-
-
-def build_transcriber_prompt(language: str | None) -> str:
-    """System prompt for the omni transcriber: verbatim, language-pinned, brand-aware."""
-    lang_name = _TRANSCRIBER_LANGUAGE_NAMES.get(language or "", None)
-    lang_line = (
-        f"The audio is in {lang_name}; transcribe in {lang_name}."
-        if lang_name
-        else "Transcribe in the language that is spoken."
-    )
-    brand_line = ""
-    if BRAND_TERMS:
-        brand_line = (
-            " The following brand/product names may appear — spell each exactly "
-            "as written: " + ", ".join(BRAND_TERMS) + "."
-        )
-    return (
-        "You are a speech transcription engine. Transcribe the user's audio "
-        "verbatim. " + lang_line + " Do not translate, summarize, answer, or add "
-        "any commentary or punctuation that wasn't spoken. Output only the "
-        "transcript text, nothing else." + brand_line
-    )

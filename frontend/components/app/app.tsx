@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useSession } from '@livekit/components-react';
+import { Room } from 'livekit-client';
 import { WarningIcon } from '@phosphor-icons/react/dist/ssr';
 import { type AppConfig, DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from '@/app-config';
 import { AgentSessionProvider } from '@/components/agents-ui/agent-session-provider';
@@ -77,7 +78,22 @@ export function App({ appConfig }: AppProps) {
       : getAgentTokenSource(getSelection);
   }, [appConfig]);
 
-  const session = useSession(tokenSource);
+  // Capture the mic with browser echo cancellation + noise suppression + auto-gain
+  // so ambient office noise is reduced at the source. This cleans the audio once,
+  // benefiting both the live conversation and the displayed transcript. Created
+  // once and reused across reconnects (e.g. language change).
+  const [room] = useState(
+    () =>
+      new Room({
+        audioCaptureDefaults: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      })
+  );
+
+  const session = useSession(tokenSource, { room });
 
   // The conversation language is baked into the participant token at connect
   // time and the realtime model can't swap languages on a live session, so an

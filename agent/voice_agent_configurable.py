@@ -4,11 +4,10 @@ import os
 from dotenv import load_dotenv
 from livekit.agents import Agent, AgentServer, AgentSession, JobContext, cli
 from livekit import rtc
-from openai.types.realtime import AudioTranscription
+from livekit.plugins import deepgram
 from qwen_realtime.realtime_model import RealtimeModel as QwenRealtimeModel
 
-from omni_transcriber import OmniTranscriber
-from prompts import VOICE_INSTRUCTIONS
+from prompts import BRAND_TERMS, VOICE_INSTRUCTIONS
 
 logger = logging.getLogger("agent")
 # LiveKit runs each job's entrypoint in a separate subprocess whose *root* logger
@@ -44,35 +43,13 @@ VAD_PREFIX_PADDING_MS = int(os.getenv("AGENT_VAD_PREFIX_PADDING_MS", "500"))
 QWEN_BASE_URL = os.getenv(
     "QWEN_BASE_URL", "wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime"
 )
-QWEN_MODEL = os.getenv("QWEN_MODEL", "qwen3.5-omni-flash-realtime")
+QWEN_MODEL = os.getenv("QWEN_MODEL", "qwen3.5-omni-plus-realtime")
 QWEN_VOICE = os.getenv("QWEN_VOICE", "Ethan")
-# The input ASR model that produces the *displayed* user transcript (a separate,
-# weaker path from qwen-omni's own audio understanding). Env-configurable so the
-# accuracy of `paraformer-realtime-v2` vs `gummy-realtime-v1` can be A/B tested
-# without a code change.
-QWEN_ASR_MODEL = os.getenv("AGENT_ASR_MODEL", "paraformer-realtime-v2")
-
-# Separate STT: when enabled, the displayed user transcript comes from a
-# per-utterance omni LLM (omni_transcriber) instead of the realtime model's
-# built-in sub-ASR. It's broadly multilingual (incl. Turkish) and supports
-# brand-name biasing via prompts.BRAND_TERMS. Off by default.
-SEPARATE_STT_ENABLED = os.getenv("SEPARATE_STT_ENABLED", "false").strip().lower() in (
-    "1",
-    "true",
-    "yes",
-)
-TRANSCRIBER_MODEL = os.getenv("STT_MODEL", "qwen3-omni-flash")
-TRANSCRIBER_BASE_URL = os.getenv(
-    "AGENT_TRANSCRIBER_BASE_URL",
-    "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
-)
-# Languages the built-in realtime ASR handles well — for these the displayed
-# transcript uses the realtime model directly (low latency, streams as you speak).
-# Other languages (e.g. Turkish) fall back to the omni transcriber (accurate but
-# higher latency). Comma-separated; only consulted when SEPARATE_STT_ENABLED=true.
-REALTIME_ASR_LANGUAGES = {
-    s.strip() for s in os.getenv("REALTIME_ASR_LANGUAGES", "en").split(",") if s.strip()
-}
+# The displayed user transcript is produced by Deepgram (Nova-3 streaming):
+# realtime, multilingual (incl. Turkish), and brand-name biasing via keyterm
+# prompting. qwen-omni still drives the conversation. Requires DEEPGRAM_API_KEY
+# in the environment (read by the plugin automatically).
+DEEPGRAM_MODEL = os.getenv("DEEPGRAM_MODEL", "nova-3")
 
 # English names used to pin the model's output language in its instructions.
 _LANGUAGE_NAMES = {
@@ -131,58 +108,38 @@ async def entrypoint(ctx: JobContext):
     # model is full-duplex (no separate STT/TTS/turn-detector to configure).
     language = _resolve_language(attrs.get("language"))
 
-    # Per-language transcript strategy:
-    #   - Languages in REALTIME_ASR_LANGUAGES (e.g. English) → built-in realtime ASR
-    #     (low latency, streams as you speak, no per-utterance splitting).
-    #   - Other languages (e.g. Turkish) → omni transcriber (accurate Turkish + brand
-    #     names, at the cost of higher, post-utterance latency).
-    # The omni path only kicks in when SEPARATE_STT_ENABLED is also true.
-    input_audio_transcription = AudioTranscription(
-        model=QWEN_ASR_MODEL,
+    # Deepgram (Nova-3) produces the displayed transcript for every language —
+    # realtime streaming, Turkish-capable, and brand-aware via keyterm prompting.
+    # qwen-omni still drives the conversation; its built-in input ASR is disabled
+    # (input_audio_transcription=None) so the framework uses Deepgram's transcript.
+    stt = deepgram.STT(
+        model=DEEPGRAM_MODEL,
         language=language or "en",
+        keyterm=BRAND_TERMS,
     )
-    transcriber = None
-    use_omni_transcriber = (
-        SEPARATE_STT_ENABLED and (language or "en") not in REALTIME_ASR_LANGUAGES
-    )
-    if use_omni_transcriber:
-        transcriber = OmniTranscriber(
-            api_key=_qwen_api_keys()[0],
-            base_url=TRANSCRIBER_BASE_URL,
-            model=TRANSCRIBER_MODEL,
-            language=language,
-        )
-        input_audio_transcription = None
 
     logger.info(
-        "Composing session: language=%s asr_model=%s vad_prefix_padding_ms=%s "
-        "transcript_mode=%s transcriber_model=%s",
+        "Composing session: language=%s stt=deepgram:%s keyterms=%s vad_prefix_padding_ms=%s",
         language,
-        QWEN_ASR_MODEL,
+        DEEPGRAM_MODEL,
+        BRAND_TERMS,
         VAD_PREFIX_PADDING_MS,
-        "omni" if use_omni_transcriber else "realtime-builtin",
-        TRANSCRIBER_MODEL if use_omni_transcriber else "-",
     )
 
     session = AgentSession(
+        stt=stt,
         llm=QwenRealtimeModel(
             model=QWEN_MODEL,
             base_url=QWEN_BASE_URL,
             # Ordered key pool from env; rotates to a backup if a key is refused.
             api_keys=_qwen_api_keys(),
             voice=QWEN_VOICE,  # erkek ses (alternatif: "Aiden")
-            # Language anchor (the real fix for wrong-language replies):
-            # qwen-omni-realtime has NO session-level language field and does NOT
-            # reliably follow the system instruction for output language — it
-            # auto-detects the spoken language and replies in that, which
-            # mis-fires (Chinese/French) on short/ambiguous input. The only
-            # reliable lever is the input transcription language. `paraformer-realtime-v2`
-            # is qwen-omni's OWN built-in input ASR (same DashScope session, not a
-            # separate model); pinning its `language` forces the input to be
-            # interpreted in the selected language, which anchors the whole
-            # conversation language. Uses the session language, else "en".
-            input_audio_transcription=input_audio_transcription,
-            external_transcriber=transcriber,
+            # Built-in input ASR is disabled so Deepgram (the AgentSession `stt`)
+            # owns the displayed transcript. NOTE: this also removes the old
+            # input-transcription "language anchor" for qwen's *reply* language — the
+            # system-instruction directive below is now the only lever, so watch for
+            # reply-language drift and re-add an anchor if it regresses.
+            input_audio_transcription=None,
             # Noise gate: a higher VAD threshold makes the model ignore ambient
             # / background sounds and only trigger on clear speech. Tune via the
             # AGENT_VAD_THRESHOLD env var.

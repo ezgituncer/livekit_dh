@@ -508,7 +508,6 @@ class RealtimeModel(llm.RealtimeModel):
         max_session_duration: NotGivenOr[float | None] = NOT_GIVEN,
         conn_options: APIConnectOptions = DEFAULT_API_CONNECT_OPTIONS,
         temperature: NotGivenOr[float] = NOT_GIVEN,  # deprecated, unused in v1
-        external_transcriber: Any = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -578,8 +577,7 @@ class RealtimeModel(llm.RealtimeModel):
             capabilities=llm.RealtimeCapabilities(
                 message_truncation=True,
                 turn_detection=turn_detection is not None,
-                user_transcription=input_audio_transcription is not None
-                or external_transcriber is not None,
+                user_transcription=input_audio_transcription is not None,
                 auto_tool_reply_generation=False,
                 audio_output="audio" in modalities,
                 manual_function_calls=True,
@@ -667,10 +665,6 @@ class RealtimeModel(llm.RealtimeModel):
         self._http_session_owned = False
         self._sessions = weakref.WeakSet[RealtimeSession]()
         self._provider_label = "Qwen Realtime API" if is_qwen else "OpenAI Realtime API"
-        # Optional per-utterance transcriber (omni_transcriber.OmniTranscriber) used
-        # to produce the *displayed* user transcript instead of the built-in sub-ASR.
-        # When set, the caller should also pass input_audio_transcription=None.
-        self._external_transcriber = external_transcriber
 
     @property
     def model(self) -> str:
@@ -1037,14 +1031,6 @@ class RealtimeSession(
             SAMPLE_RATE, NUM_CHANNELS, samples_per_channel=SAMPLE_RATE // 10
         )
         self._pushed_duration_s: float = 0  # duration of audio pushed to the OpenAI Realtime API
-
-        # --- External per-utterance transcriber state ---------------------
-        # When an external transcriber is configured, we keep a rolling copy of the
-        # pushed input audio (16-bit mono PCM @ SAMPLE_RATE) and, on each end of
-        # speech, send the utterance to it to produce the displayed transcript.
-        self._ext_transcriber = realtime_model._external_transcriber
-        self._utt_buf = bytearray()
-        self._utt_start_byte: int | None = None
 
     def _rotate_to_next_key(self, reason: str) -> bool:
         """Advance the active API key to the next one in the pool.
@@ -1873,12 +1859,6 @@ class RealtimeSession(
                     )
                 )
                 self._pushed_duration_s += nf.duration
-                if self._ext_transcriber is not None:
-                    self._utt_buf.extend(nf.data)
-                    # Bound memory (~30s) in case an end-of-speech event is missed.
-                    max_bytes = SAMPLE_RATE * 2 * 30
-                    if len(self._utt_buf) > max_bytes:
-                        del self._utt_buf[: len(self._utt_buf) - max_bytes]
 
     def push_video(self, frame: rtc.VideoFrame) -> None:
         message = llm.ChatMessage(
@@ -2055,61 +2035,15 @@ class RealtimeSession(
     def _handle_input_audio_buffer_speech_started(
         self, _: InputAudioBufferSpeechStartedEvent
     ) -> None:
-        if self._ext_transcriber is not None:
-            # Mark the utterance start, keeping ~0.5s of pre-roll so the first word
-            # (which the server VAD detects slightly late) isn't clipped.
-            preroll_bytes = SAMPLE_RATE * 2 // 2  # 0.5s of 16-bit mono PCM
-            self._utt_start_byte = max(0, len(self._utt_buf) - preroll_bytes)
         self.emit("input_speech_started", llm.InputSpeechStartedEvent())
 
     def _handle_input_audio_buffer_speech_stopped(
         self, _: InputAudioBufferSpeechStoppedEvent
     ) -> None:
-        user_transcription_enabled = (
-            self._opts.input_audio_transcription is not None or self._ext_transcriber is not None
-        )
+        user_transcription_enabled = self._opts.input_audio_transcription is not None
         self.emit(
             "input_speech_stopped",
             llm.InputSpeechStoppedEvent(user_transcription_enabled=user_transcription_enabled),
-        )
-        if self._ext_transcriber is not None and self._utt_start_byte is not None:
-            audio = bytes(self._utt_buf[self._utt_start_byte :])
-            self._utt_buf.clear()
-            self._utt_start_byte = None
-            if audio:
-                asyncio.create_task(
-                    self._run_external_transcription(audio),
-                    name="qwen_external_transcription",
-                )
-
-    async def _run_external_transcription(self, audio: bytes) -> None:
-        """Transcribe one utterance via the external transcriber and surface it as the
-        user transcript through the standard realtime event path.
-
-        The transcript is emitted once, as a single final event (no interim/streaming
-        updates) — the displayed text appears all at once when transcription completes.
-        """
-        acc = ""
-        try:
-            async for delta in self._ext_transcriber.transcribe_stream(
-                audio, sample_rate=SAMPLE_RATE
-            ):
-                acc += delta
-        except Exception:
-            logger.exception("external transcription failed")
-            return
-
-        text = acc.strip()
-        if not text:
-            return
-        logger.info("OmniTranscriber final: %r", text)
-        self.emit(
-            "input_audio_transcription_completed",
-            llm.InputTranscriptionCompleted(
-                item_id=utils.shortuuid("item_"),
-                transcript=text,
-                is_final=True,
-            ),
         )
 
     def _handle_response_created(self, event: ResponseCreatedEvent) -> None:
@@ -2235,10 +2169,10 @@ class RealtimeSession(
     def _handle_conversion_item_input_audio_transcription_delta(
         self, event: ConversationItemInputAudioTranscriptionDeltaEvent
     ) -> None:
-        # An external transcriber owns the displayed transcript; ignore the model's
-        # own (it auto-transcribes input even when input_audio_transcription=None,
-        # which would otherwise produce a duplicate user message).
-        if self._ext_transcriber is not None:
+        # Input transcription wasn't requested (input_audio_transcription=None) — an
+        # external STT owns the displayed transcript. qwen-omni still auto-transcribes
+        # input and emits these events; ignore them to avoid a duplicate user message.
+        if self._opts.input_audio_transcription is None:
             return
         if not event.delta:
             return
@@ -2267,9 +2201,10 @@ class RealtimeSession(
     def _handle_conversion_item_input_audio_transcription_completed(
         self, event: ConversationItemInputAudioTranscriptionCompletedEvent
     ) -> None:
-        # See _handle_..._delta: skip the model's built-in transcript when an
-        # external transcriber is producing the displayed one.
-        if self._ext_transcriber is not None:
+        # See _handle_..._delta: when transcription wasn't requested, an external STT
+        # owns the displayed transcript; suppress qwen's own to avoid a duplicate.
+        if self._opts.input_audio_transcription is None:
+            self._clear_transcript_accumulator(event.item_id, event.content_index or 0)
             return
         self._clear_transcript_accumulator(event.item_id, event.content_index or 0)
 
