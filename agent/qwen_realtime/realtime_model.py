@@ -2087,7 +2087,8 @@ class RealtimeSession(
         self.emit("generation_created", generation_ev)
 
     def _handle_response_output_item_added(self, event: ResponseOutputItemAddedEvent) -> None:
-        assert self._current_generation is not None, "current_generation is None"
+        if self._current_generation is None:
+            return  # event arrived after an interruption cleared the generation
         assert (item_id := event.item.id) is not None, "item.id is None"
         assert (item_type := event.item.type) is not None, "item.type is None"
 
@@ -2113,7 +2114,8 @@ class RealtimeSession(
             self._current_generation.messages[item_id] = item_generation
 
     def _handle_response_content_part_added(self, event: ResponseContentPartAddedEvent) -> None:
-        assert self._current_generation is not None, "current_generation is None"
+        if self._current_generation is None:
+            return  # event arrived after an interruption cleared the generation
         assert (item_id := event.item_id) is not None, "item_id is None"
         assert (item_type := event.part.type) is not None, "part.type is None"
 
@@ -2244,7 +2246,8 @@ class RealtimeSession(
         )
 
     def _handle_response_text_delta(self, event: ResponseTextDeltaEvent) -> None:
-        assert self._current_generation is not None, "current_generation is None"
+        if self._current_generation is None:
+            return  # event arrived after an interruption cleared the generation
         # For audio responses the spoken audio transcript
         # (response.output_audio_transcript) is the source of truth for the shown
         # text. Qwen-Omni also emits a separate `output_text` that can drift into
@@ -2264,10 +2267,12 @@ class RealtimeSession(
         item_generation.audio_transcript += event.delta
 
     def _handle_response_text_done(self, event: ResponseTextDoneEvent) -> None:
-        assert self._current_generation is not None, "current_generation is None"
+        if self._current_generation is None:
+            return  # event arrived after an interruption cleared the generation
 
     def _handle_response_audio_transcript_delta(self, event: dict[str, Any]) -> None:
-        assert self._current_generation is not None, "current_generation is None"
+        if self._current_generation is None:
+            return  # event arrived after an interruption cleared the generation
 
         item_id = event["item_id"]
         delta = event["delta"]
@@ -2280,7 +2285,8 @@ class RealtimeSession(
         item_generation.audio_transcript += delta
 
     def _handle_response_audio_delta(self, event: ResponseAudioDeltaEvent) -> None:
-        assert self._current_generation is not None, "current_generation is None"
+        if self._current_generation is None:
+            return  # event arrived after an interruption cleared the generation
         item_generation = self._current_generation.messages[event.item_id]
         if self._current_generation._first_token_timestamp is None:
             self._current_generation._first_token_timestamp = time.time()
@@ -2299,10 +2305,12 @@ class RealtimeSession(
         )
 
     def _handle_response_audio_done(self, _: ResponseAudioDoneEvent) -> None:
-        assert self._current_generation is not None, "current_generation is None"
+        if self._current_generation is None:
+            return  # event arrived after an interruption cleared the generation
 
     def _handle_response_output_item_done(self, event: ResponseOutputItemDoneEvent) -> None:
-        assert self._current_generation is not None, "current_generation is None"
+        if self._current_generation is None:
+            return  # event arrived after an interruption cleared the generation
         assert (item_id := event.item.id) is not None, "item.id is None"
         assert (item_type := event.item.type) is not None, "item.type is None"
 
@@ -2320,7 +2328,8 @@ class RealtimeSession(
                 item_generation.modalities.set_result(self._opts.modalities)
 
     def _handle_function_call(self, item: RealtimeConversationItemFunctionCall) -> None:
-        assert self._current_generation is not None, "current_generation is None"
+        if self._current_generation is None:
+            return  # event arrived after an interruption cleared the generation
 
         assert item.id is not None, "item.id is None"
         assert item.call_id is not None, "call_id is None"
@@ -2339,8 +2348,6 @@ class RealtimeSession(
     def _handle_response_done(self, event: ResponseDoneEvent) -> None:
         if self._current_generation is None:
             return  # OpenAI has a race condition where we could receive response.done without any previous response.created (This happens generally during interruption)  # noqa: E501
-
-        assert self._current_generation is not None, "current_generation is None"
 
         created_timestamp = self._current_generation._created_timestamp
         first_token_timestamp = self._current_generation._first_token_timestamp
