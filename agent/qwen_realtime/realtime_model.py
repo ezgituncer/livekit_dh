@@ -1944,6 +1944,10 @@ class RealtimeSession(
         return self._current_generation is not None or len(self._response_created_futures) > 0
 
     def interrupt(self) -> None:
+        logger.warning(
+            "[audio-cut diag] interrupt() called (has_active_generation=%s)",
+            self.has_active_generation,
+        )
         if not self.has_active_generation:
             return
         self.send_event(ResponseCancelEvent(type="response.cancel"))
@@ -1956,6 +1960,12 @@ class RealtimeSession(
         audio_end_ms: int,
         audio_transcript: NotGivenOr[str] = NOT_GIVEN,
     ) -> None:
+        logger.warning(
+            "[audio-cut diag] truncate() called: item=%s audio_end_ms=%s modalities=%s",
+            message_id,
+            audio_end_ms,
+            modalities,
+        )
         if "audio" in modalities:
             self.send_event(
                 ConversationItemTruncateEvent(
@@ -2346,6 +2356,7 @@ class RealtimeSession(
         )
 
     def _handle_response_done(self, event: ResponseDoneEvent) -> None:
+        logger.warning("[audio-cut diag] response.done received")
         if self._current_generation is None:
             return  # OpenAI has a race condition where we could receive response.done without any previous response.created (This happens generally during interruption)  # noqa: E501
 

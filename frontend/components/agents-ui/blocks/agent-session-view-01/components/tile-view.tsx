@@ -150,7 +150,7 @@ export function TileLayout({
                     delay: animationDelay,
                   }}
                   className={cn(
-                    'relative aspect-3/4 max-h-[740px] overflow-hidden rounded-2xl',
+                    'relative aspect-3/4 mt-12 max-h-[740px] overflow-hidden rounded-2xl',
                     chatOpen ? 'h-[52vh] md:h-[72vh]' : 'h-[70vh] md:max-h-[740px]'
                   )}
                 >
