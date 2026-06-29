@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, type MotionProps, motion } from 'motion/react';
 import {
+  type ReceivedMessage,
   useAgent,
   useRoomContext,
   useSessionContext,
@@ -169,6 +170,30 @@ export interface AgentSessionView_01Props {
   className?: string;
 }
 
+/**
+ * Collapse a spoken turn into a single bubble: merge consecutive voice-transcript
+ * ('userTranscript') messages into one. Streaming STT (Deepgram) emits several
+ * final segments per utterance, which would otherwise render as several bubbles.
+ * Typed messages ('chatMessage') and agent replies break a run, so each real turn
+ * stays one bubble. Idempotent — a no-op when there's already one segment per turn.
+ */
+function mergeUserTurns(msgs: ReceivedMessage[]): ReceivedMessage[] {
+  const out: ReceivedMessage[] = [];
+  for (const m of msgs) {
+    const prev = out.at(-1);
+    if (m.type === 'userTranscript' && prev?.type === 'userTranscript') {
+      out[out.length - 1] = {
+        ...prev,
+        message: `${prev.message} ${m.message}`.replace(/\s+/g, ' ').trim(),
+        timestamp: m.timestamp,
+      };
+    } else {
+      out.push(m);
+    }
+  }
+  return out;
+}
+
 export function AgentSessionView_01({
   headline,
   preConnectMessage = 'Agent is listening, ask it a question',
@@ -218,7 +243,7 @@ export function AgentSessionView_01({
   };
 
   const visibleMessages = useMemo(
-    () => messages.filter((m) => new Date(m.timestamp).getTime() > clearedAt),
+    () => mergeUserTurns(messages.filter((m) => new Date(m.timestamp).getTime() > clearedAt)),
     [messages, clearedAt]
   );
 
