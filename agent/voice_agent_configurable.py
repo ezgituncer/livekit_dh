@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 
@@ -7,6 +8,7 @@ from livekit import rtc
 from livekit.plugins import deepgram
 from qwen_realtime.realtime_model import RealtimeModel as QwenRealtimeModel
 
+from deepgram_failover import ensure_budget_checker_running, get_key_provider
 from prompts import BRAND_TERMS, VOICE_INSTRUCTIONS
 
 logger = logging.getLogger("agent")
@@ -94,9 +96,18 @@ def _resolve_language(attr_value: str | None) -> str | None:
 server = AgentServer(num_idle_processes=2)
 
 
+
+
 @server.rtc_session(agent_name="eval-voice-agent")
 async def entrypoint(ctx: JobContext):
     ctx.log_context_fields = {"room": ctx.room.name}
+
+    await ensure_budget_checker_running()
+    logger.info(
+        "Deepgram failover: checker running — active_key=%s project=%s",
+        get_key_provider().active_alias,
+        get_key_provider().active_project_id,
+    )
 
     await ctx.connect()
     participant = await ctx.wait_for_participant()
@@ -117,7 +128,8 @@ async def entrypoint(ctx: JobContext):
     stt_kwargs: dict = {"model": DEEPGRAM_MODEL, "language": language or "en"}
     if BRAND_TERMS and DEEPGRAM_MODEL.startswith("nova-3"):
         stt_kwargs["keyterm"] = BRAND_TERMS
-    stt = deepgram.STT(**stt_kwargs)
+    # Key comes from the provider so failover is reflected for every new session.
+    stt = deepgram.STT(api_key=get_key_provider().active_key, **stt_kwargs)
 
     logger.info(
         "Composing session: language=%s stt=deepgram:%s keyterms=%s vad_prefix_padding_ms=%s",
