@@ -7,11 +7,12 @@ the balance drops below DEEPGRAM_MIN_BALANCE that slot is permanently discarded
 and the next one becomes active — together with its project_id and billing_key.
 
 Configuration (agent/.env):
-    DEEPGRAM_KEYS   Comma-separated triplets, primary first:
-                        asr_key1|project_id1|billing_key1,asr_key2|project_id2|billing_key2
-                    asr_key    — used for all STT requests
+    DEEPGRAM_KEYS   Comma-separated pairs, primary first:
+                        asr_key1|project_id1,asr_key2|project_id2
+                    asr_key    — used for STT requests and the balance API
                     project_id — appears in the balance API URL
-                    billing_key — must have the 'usage:read' scope for that project
+                    The same key is used for both STT and billing; it must have
+                    the 'usage:read' scope.
 
     DEEPGRAM_FAILOVER_ENABLED  "true"/"false" (default: true)
     DEEPGRAM_BUDGET_INTERVAL   Seconds between balance checks (default: 60)
@@ -42,9 +43,8 @@ _REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=10)
 @dataclass(frozen=True)
 class _KeyEntry:
     alias: str        # "key_1", "key_2", … — safe to log
-    asr_key: str      # used for STT — never logged
+    asr_key: str      # used for STT and balance API — never logged
     project_id: str   # used in balance API URL
-    billing_key: str  # used for balance API auth — never logged
 
 
 @dataclass(frozen=True)
@@ -58,30 +58,14 @@ class _FailoverConfig:
 def _load_config() -> _FailoverConfig:
     """Parse DEEPGRAM_KEYS into a list of (asr_key, project_id, billing_key) triplets.
 
-    New format (DEEPGRAM_KEYS takes priority):
-        DEEPGRAM_KEYS=asr_key1|project_id1|billing_key1,asr_key2|project_id2|billing_key2
-
-    Legacy fallback (single-slot, kept for backwards compat):
-        DEEPGRAM_API_KEY=...
-        DEEPGRAM_PROJECT_ID=...
-        DEEPGRAM_BILLING_API_KEY=...
+    Format:
+        DEEPGRAM_KEYS=asr_key1|project_id1,asr_key2|project_id2
     """
     raw = os.getenv("DEEPGRAM_KEYS", "").strip()
     if not raw:
-        # Fall back to the old separate vars and synthesise a single-slot entry.
-        asr_key = os.getenv("DEEPGRAM_API_KEY", "").strip()
-        project_id = os.getenv("DEEPGRAM_PROJECT_ID", "").strip()
-        billing_key = os.getenv("DEEPGRAM_BILLING_API_KEY", "").strip()
-        if not asr_key:
-            raise RuntimeError(
-                "No Deepgram key configured. "
-                "Set DEEPGRAM_KEYS (asr_key|project_id|billing_key, comma-separated) "
-                "or the legacy DEEPGRAM_API_KEY / DEEPGRAM_PROJECT_ID / DEEPGRAM_BILLING_API_KEY."
-            )
-        raw = f"{asr_key}|{project_id}|{billing_key}"
-        logger.debug(
-            "DEEPGRAM_KEYS not set — using legacy DEEPGRAM_API_KEY / DEEPGRAM_PROJECT_ID / "
-            "DEEPGRAM_BILLING_API_KEY as a single slot."
+        raise RuntimeError(
+            "DEEPGRAM_KEYS is not set. "
+            "Format: asr_key1|project_id1,asr_key2|project_id2"
         )
 
     entries: list[_KeyEntry] = []
@@ -90,22 +74,21 @@ def _load_config() -> _FailoverConfig:
         if not slot:
             continue
         parts = slot.split("|")
-        if len(parts) != 3:
+        if len(parts) != 2:
             raise RuntimeError(
                 f"DEEPGRAM_KEYS slot {i + 1} is malformed — expected "
-                f"asr_key|project_id|billing_key, got {len(parts)} part(s)."
+                f"asr_key|project_id, got {len(parts)} part(s)."
             )
-        asr_key, project_id, billing_key = (p.strip() for p in parts)
-        if not all([asr_key, project_id, billing_key]):
+        asr_key, project_id = (p.strip() for p in parts)
+        if not all([asr_key, project_id]):
             raise RuntimeError(
                 f"DEEPGRAM_KEYS slot {i + 1} has an empty field — "
-                "all three of asr_key, project_id, billing_key are required."
+                "both asr_key and project_id are required."
             )
         entries.append(_KeyEntry(
             alias=f"key_{i + 1}",
             asr_key=asr_key,
             project_id=project_id,
-            billing_key=billing_key,
         ))
 
     if not entries:
@@ -273,7 +256,7 @@ class DeepgramKeyProvider:
     async def _fetch_balance(self, entry: _KeyEntry) -> Optional[float]:
         """Fetch remaining USD balance for *entry*. Returns None on any error."""
         url = _BALANCE_URL.format(project_id=entry.project_id)
-        headers = {"Authorization": f"Token {entry.billing_key}"}
+        headers = {"Authorization": f"Token {entry.asr_key}"}
         try:
             async with aiohttp.ClientSession(timeout=_REQUEST_TIMEOUT) as session:
                 async with session.get(url, headers=headers) as resp:
