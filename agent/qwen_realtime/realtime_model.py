@@ -132,6 +132,13 @@ QWEN_DEFAULT_TRANSCRIPTION_MODEL = "gummy-realtime-v1"
 
 lk_oai_debug = int(os.getenv("LK_OPENAI_DEBUG", 0))
 
+# Timeout for the realtime HTTP/WebSocket session. `total` is intentionally left
+# as None: the realtime WS is long-lived (open for the whole conversation), so a
+# total cap would kill mid-response. Instead we bound the connection setup and the
+# gap between reads, so a stalled proxy fails fast (30s) instead of hanging while
+# still tolerating a slow-but-alive stream.
+_HTTP_TIMEOUT = aiohttp.ClientTimeout(total=None, sock_connect=30, sock_read=30)
+
 # HTTP handshake statuses that mean "this key is refused → rotate to the next one".
 # A truly invalid/revoked DashScope key returns 401 at the websocket handshake.
 KEY_ROTATE_HTTP_STATUSES = (401, 403, 429)
@@ -906,7 +913,7 @@ class RealtimeModel(llm.RealtimeModel):
             try:
                 self._http_session = utils.http_context.http_session()
             except RuntimeError:
-                self._http_session = aiohttp.ClientSession()
+                self._http_session = aiohttp.ClientSession(timeout=_HTTP_TIMEOUT)
                 self._http_session_owned = True
 
         return self._http_session
