@@ -136,8 +136,30 @@ lk_oai_debug = int(os.getenv("LK_OPENAI_DEBUG", 0))
 # as None: the realtime WS is long-lived (open for the whole conversation), so a
 # total cap would kill mid-response. Instead we bound the connection setup and the
 # gap between reads, so a stalled proxy fails fast (30s) instead of hanging while
-# still tolerating a slow-but-alive stream.
+# still tolerating a slow-but-alive stream. When the read timeout fires it is
+# converted into a *retryable* reconnect (see `_recv_task`), not a fatal error.
 _HTTP_TIMEOUT = aiohttp.ClientTimeout(total=None, sock_connect=30, sock_read=30)
+
+# Send a WebSocket PING on this cadence (seconds) while the realtime socket is
+# open. Two reasons: (1) the PONG that comes back is socket-read activity, so an
+# idle-but-alive connection (a quiet stretch of conversation where the server
+# sends nothing) doesn't trip the `sock_read` timeout above; (2) if the peer has
+# silently gone away, the missing PONG makes aiohttp surface the dead socket
+# promptly out of `receive()` instead of waiting out the full read timeout — which
+# then triggers a reconnect. Kept below `sock_read` so a PONG always refreshes the
+# read timer first. Set QWEN_WS_HEARTBEAT=0 to disable.
+_WS_HEARTBEAT = float(os.getenv("QWEN_WS_HEARTBEAT", "20"))
+
+# Mid-session reconnect backoff. When a connection that was *already live* drops
+# (the classic case: a proxy severing a healthy long-lived socket mid-answer), the
+# session must recover rather than die — so these drops reconnect indefinitely
+# (until the session is actually closed) instead of counting against the finite
+# conn_options.max_retry budget. The first reconnect after a drop is immediate; if
+# reconnection keeps failing (proxy/endpoint still down) the delay grows to a cap
+# so we don't hammer a flapping proxy. A successful reconnect resets the backoff,
+# so every fresh drop is again retried immediately.
+_RECONNECT_BACKOFF_BASE = float(os.getenv("QWEN_RECONNECT_BACKOFF_BASE", "0.5"))
+_RECONNECT_BACKOFF_MAX = float(os.getenv("QWEN_RECONNECT_BACKOFF_MAX", "10"))
 
 # HTTP handshake statuses that mean "this key is refused → rotate to the next one".
 # A truly invalid/revoked DashScope key returns 401 at the websocket handshake.
@@ -1153,10 +1175,15 @@ class RealtimeSession(
             self.emit("session_reconnected", llm.RealtimeSessionReconnectedEvent())
 
         reconnecting = False
+        # True once a WebSocket has been established at least once. Distinguishes an
+        # initial-connect failure (likely misconfig — fail fast within max_retry) from
+        # a mid-session drop of a working session (a proxy cut — reconnect forever).
+        connected_once = False
         conn_start: float | None = None
         while not self._msg_ch.closed:
             try:
                 ws_conn = await self._create_ws_conn()
+                connected_once = True
                 if reconnecting:
                     await _reconnect()
                     num_retries = 0  # reset the retry counter
@@ -1205,7 +1232,42 @@ class RealtimeSession(
                 if max_retries == 0 or not e.retryable:
                     self._emit_error(e, recoverable=False)
                     raise
-                elif num_retries == max_retries:
+
+                # (3) Mid-session drop of a session that was already live — e.g. a
+                # proxy severing a healthy socket mid-answer. This must not count
+                # against the finite retry budget: the session has to keep going, so
+                # reconnect immediately and keep trying for as long as the session is
+                # open (the `while not self._msg_ch.closed` guard ends this the moment
+                # the framework actually closes the session). A capped exponential
+                # backoff kicks in only if reconnection keeps failing, to avoid
+                # hammering a flapping proxy; a successful reconnect resets it above.
+                if connected_once:
+                    self._emit_error(e, recoverable=True)
+                    delay = (
+                        0.0
+                        if num_retries == 0
+                        else min(
+                            _RECONNECT_BACKOFF_MAX,
+                            _RECONNECT_BACKOFF_BASE * (2 ** min(num_retries - 1, 6)),
+                        )
+                    )
+                    logger.warning(
+                        f"{self._realtime_model._provider_label} connection lost "
+                        f"mid-session; reconnecting"
+                        + (f" in {delay:.1f}s" if delay else " immediately"),
+                        exc_info=e,
+                        extra={"attempt": num_retries},
+                    )
+                    if delay:
+                        await asyncio.sleep(delay)
+                    num_retries += 1
+                    reconnecting = True
+                    continue
+
+                # Initial-connect failures keep the finite budget so a genuine
+                # misconfiguration (bad URL/endpoint) surfaces fast instead of
+                # retrying forever.
+                if num_retries == max_retries:
                     self._emit_error(e, recoverable=False)
                     raise APIConnectionError(
                         f"{self._realtime_model._provider_label} connection failed after {num_retries} attempts",
@@ -1253,7 +1315,14 @@ class RealtimeSession(
         t0 = time.perf_counter()
         try:
             ws = await asyncio.wait_for(
-                self._realtime_model._ensure_http_session().ws_connect(url=url, headers=headers),
+                self._realtime_model._ensure_http_session().ws_connect(
+                    url=url,
+                    headers=headers,
+                    # Proactively keep the socket alive / detect a dead peer. A
+                    # missing PONG surfaces as a timeout on receive(), which
+                    # _recv_task turns into a retryable reconnect.
+                    heartbeat=_WS_HEARTBEAT or None,
+                ),
                 self._opts.conn_options.timeout,
             )
             self._report_connection_acquired(time.perf_counter() - t0)
@@ -1327,7 +1396,26 @@ class RealtimeSession(
         @utils.log_exceptions(logger=logger)
         async def _recv_task() -> None:
             while True:
-                msg = await ws_conn.receive()
+                try:
+                    msg = await ws_conn.receive()
+                except (asyncio.TimeoutError, aiohttp.ClientError, ConnectionError) as e:
+                    # The socket stalled or dropped mid-stream: aiohttp surfaces the
+                    # `sock_read` timeout (and a missing heartbeat PONG) as a
+                    # TimeoutError out of receive(), and a hard drop as a ClientError /
+                    # ConnectionError. An expected close is handled below via the
+                    # CLOSED message; anything reaching here is an *unexpected* drop, so
+                    # re-raise it as a retryable APIConnectionError. That routes it into
+                    # _main_task's reconnect loop instead of the fatal `except Exception`
+                    # branch, so the session comes back up on its own.
+                    if closing:  # a close we initiated, see _send_task
+                        return
+                    raise APIConnectionError(
+                        message=(
+                            f"{self._realtime_model._provider_label} connection lost "
+                            f"({type(e).__name__}); reconnecting"
+                        )
+                    ) from e
+
                 if msg.type in (
                     aiohttp.WSMsgType.CLOSED,
                     aiohttp.WSMsgType.CLOSE,
@@ -1341,6 +1429,19 @@ class RealtimeSession(
                         message=(
                             f"{self._realtime_model._provider_label} connection closed "
                             f"unexpectedly (code {ws_conn.close_code})"
+                        )
+                    )
+
+                if msg.type == aiohttp.WSMsgType.ERROR:
+                    if closing:
+                        return
+                    # aiohttp can report a heartbeat-PONG timeout or a protocol error
+                    # as an ERROR frame instead of raising; treat it as a recoverable
+                    # drop and reconnect rather than silently spinning on receive().
+                    raise APIConnectionError(
+                        message=(
+                            f"{self._realtime_model._provider_label} connection errored "
+                            f"({ws_conn.exception()}); reconnecting"
                         )
                     )
 
