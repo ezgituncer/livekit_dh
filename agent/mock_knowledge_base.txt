@@ -1,0 +1,397 @@
+01. Purpose and demonstration scope
+
+Orion Demo is a fictional learning environment created to help visitors explore a small digital service without making decisions about a real product. Every location, role, schedule, record, and procedure in this knowledge base belongs to that imaginary environment. Nothing here describes an actual Huawei offering, contract, commercial commitment, or support entitlement. The material provides consistent reference facts for conversations and exercises.
+
+Visitors receive a welcome booklet labeled Copper Finch. That label identifies the booklet, not an account password, a device model, or the activation phrase. The booklet explains the order of a typical visit: arrival, orientation, guided practice, an optional independent exercise, and a short review. A participant can complete only the introduction and still leave with a useful understanding of the demonstration.
+
+The environment has three learning goals. Participants should understand where information is located, recognize which actions change a practice record, and explain what remains uncertain when a document does not contain an answer. Completing an exercise is more valuable than moving quickly through every screen. Facilitators encourage questions about the reason for a step instead of treating the sequence as a memorization task.
+
+A demonstration workspace contains invented projects, fabricated contact names, sample appointments, and deliberately simplified messages. These items are examples rather than evidence about customers or organizations. A visible project name may sound realistic, but it does not establish a relationship with a real business. When explaining a record, facilitators identify the scenario and describe its purpose before discussing the individual fields.
+
+Several distinctions apply throughout the guide. Orientation introduces the environment, while workshops practice a particular activity. A booking reserves a place in a session, while an account provides access to a workspace. A local practice change affects the demonstration record, while an exported file creates a separate copy. Confusing these concepts can make an otherwise straightforward question difficult to answer accurately.
+
+The knowledge base is organized by the work a visitor is trying to do. Arrival questions belong with onboarding and spaces. Access questions belong with accounts and roles. Questions about exercises belong with workshops and practice data. Later sections cover assistance, trials, information handling, exports, maintenance, scheduling, feedback, and archives. Readers can use the section headings to locate the relevant subject without reading unrelated procedures.
+
+This guide intentionally leaves some details open. In particular, it does not specify a monthly price after the trial or a refund policy. A missing fact should remain missing until an authorized revision supplies it. It is not appropriate to infer commercial terms from the length of a trial, the availability of a workshop, or a familiar practice used by another service.
+
+The best explanation usually connects a documented fact with the visitor's immediate question. Someone asking where orientation happens needs the room name, not a complete tour of every facility. Someone asking about a missing price needs an honest statement about that omission. The same principle makes the demonstration useful for both short spoken exchanges and more detailed written exploration.
+
+02. Arrival and orientation
+
+The Orion Demo orientation lasts seventeen minutes and takes place in the Cedar room. It is a short introduction rather than a complete workshop. Participants learn how the demonstration is organized, identify the controls used in the first exercise, and meet the host responsible for their visit. The duration does not change because a visitor later chooses to attend an additional activity.
+
+A host greets arriving participants at the reception desk and checks the session name on their booking. Visitors use a fictional participant alias instead of a real customer identity during practice. If an alias has been forgotten, the host retrieves the booking reference and assigns the matching practice profile. A forgotten alias does not require recreating every exercise or changing the reservation.
+
+The opening part of orientation explains the distinction between demonstration facts and real commercial information. The host then shows a sample workspace, points out its navigation areas, and demonstrates how to return to the starting view. Participants are encouraged to locate the starting view themselves before continuing. This small action establishes a reliable place to resume after exploring unfamiliar screens.
+
+During the guided example, the host opens a practice request, reads its description, changes a harmless label, and saves the result. The example shows the relationship between viewing information and modifying it. Participants can observe before attempting the same action. Someone who prefers a slower pace may repeat the sequence during the independent practice period following orientation.
+
+The closing part checks understanding through a simple explanation exercise. Each participant describes where to find a practice record and how to recognize whether a change was saved. The host listens for the reasoning behind the answer rather than demanding an exact sentence. A clear explanation in the participant's preferred supported language is sufficient for this introduction.
+
+Late arrivals should speak to the reception host rather than joining an unfamiliar exercise halfway through. The host identifies the next suitable introduction or arranges a recap appropriate to the activities already missed. This guide does not promise that an additional orientation begins immediately. The available choice depends on the current fictional session schedule and the host assigned to that visit.
+
+Participants may bring a companion into orientation when the booking includes a companion place. The companion can listen, help interpret instructions, or take notes, but does not automatically receive an independent workspace. If both people want separate practice records, the host needs to allocate two participant profiles. The distinction prevents one person's changes from appearing under another person's alias.
+
+Finishing orientation does not enroll a visitor in paid services or establish a subscription. It simply prepares the participant to navigate the fictional environment. Visitors can leave after the introduction, continue with an available workshop, or review the sample materials quietly. Questions about later activities should be directed to the relevant schedule or workshop description rather than inferred from the orientation booking.
+
+The host records completion only after the participant has had an opportunity to ask remaining questions.
+
+03. Rooms and wayfinding
+
+The fictional Orion Demo venue uses named rooms so that directions remain understandable in spoken conversation. The Cedar room hosts orientation. The Maple room is used for collaborative workshops, while the Willow room supports quiet practice. These names describe spaces within the demonstration venue and do not refer to real addresses, buildings, or Huawei facilities outside this scenario.
+
+A reception desk sits at the common arrival point. The host uses the booking record to direct each participant to the correct activity. A room assignment is associated with a session rather than permanently attached to a participant. Someone who begins in Cedar may later move to Maple for a workshop or Willow for independent practice.
+
+Wayfinding cards show a room name, the current session title, and the host's role. Participants should match all three pieces when several groups are present. A familiar room name alone does not confirm that the activity inside is the one they booked. The host can resolve a mismatch before a participant starts changing records in the wrong exercise.
+
+The Willow room is intended for activities that benefit from fewer interruptions. Participants may review instructions, repeat a completed exercise, or write feedback there. It is not a substitute for a scheduled support appointment. If a problem requires account access changes or recovery of a practice record, the quiet room host helps route the request to the appropriate person.
+
+The Maple room supports paired and group exercises. Tables are arranged so participants can discuss a shared scenario while maintaining separate individual workspaces. A facilitator may display a reference workspace for the group, but participants should not assume their own records are synchronized with that display. The facilitator explains when the group is observing a common example and when everyone should work independently.
+
+A small equipment counter holds demonstration devices awaiting assignment. The counter is an administrative handoff point rather than an open collection area. Participants identify their session and receive the item associated with their booking. Returning equipment to that counter lets the host record the handoff and prepare the item for its next assignment.
+
+Room changes appear in the session schedule and on the relevant wayfinding card. When a host moves an activity, the schedule should name the destination clearly. Participants should not infer a cancellation merely because a room is temporarily empty. Equally, a room change does not alter the documented orientation duration or create additional trial days.
+
+Visitors who need directions in another supported language can ask the reception host to repeat the room name and describe the route using simple landmarks. A host can accompany a participant when a verbal explanation does not resolve the uncertainty.
+
+A room's purpose does not determine every detail about access or availability. A quiet space can still be reserved, and a workshop room can be empty between sessions. Questions about a specific time should be answered from the fictional schedule. Questions about seating arrangements or support needs belong with the accessibility and booking information.
+
+04. Participant accounts
+
+An Orion Demo participant account provides access to an assigned fictional workspace. It is separate from the booking record that reserves a session. A booking can exist before an account is prepared, and an account can remain visible after a session ends. Neither record represents a real customer relationship, a commercial subscription, or access to an external Huawei service.
+
+The host creates a practice profile using a participant alias and a session reference. Real personal addresses are unnecessary for the exercises described here. The alias should be recognizable to the participant without revealing personal details to other people in the room. If two aliases are too similar, the host adds a distinguishing word before the session begins.
+
+The demo activation phrase is Lantern Forty Two. It is a fictional phrase used during activation, not a real password or credential. The host explains its role before the participant enters it. The phrase activates the practice scenario associated with the assigned profile; it does not extend the trial or grant administrative authority.
+
+The account overview displays the alias, assigned role, workspace label, and current practice session. Participants should check these fields before beginning a task. A mismatch can indicate that the wrong profile is open. Continuing under the wrong alias makes later feedback harder to interpret.
+
+A participant can request a display alias change through the host. The host updates the label and confirms that the workspace remains attached to the same practice profile. Changing an alias should not be treated as creating a new person or deleting completed exercises. The booking reference remains useful for connecting the visit with its original session allocation.
+
+Access problems should be described by what the participant observes. Useful descriptions distinguish an unavailable workspace, an unexpected role, an incomplete activation step, and a session that has already ended. Saying only that the account is broken leaves the host without enough information to choose the next step. A short description of the visible state usually narrows the issue.
+
+The account exercise does not require participants to reuse credentials from another service. It also does not require linking personal cloud storage or signing into a real customer system. The objective is to practice navigation and record handling within the fictional environment. Any activity outside that boundary would need a separate, clearly described scenario.
+
+At the end of a visit, participants return shared equipment with their practice workspace closed. The host confirms the next user's profile before another session begins. This handoff keeps the record of each exercise understandable and prevents accidental work under a previous alias. It is an operational convention for the demonstration rather than a claim about a production account system.
+
+Questions about restoring an old workspace are different from questions about opening a current account. The storage and archive sections describe the fictional records involved in those requests. A host should identify which object the participant needs before promising that an alias change, new booking, or activation step will resolve the request.
+
+05. Roles and responsibilities
+
+Orion Demo assigns roles to describe which activities a person can perform inside the fictional workspace. The roles are participant, workshop facilitator, reception host, and workspace steward. The same person may act in different roles during separate demonstration sessions.
+
+A participant can open assigned records, complete practice tasks, save permitted changes, and submit feedback. The participant role does not include changing another person's workspace assignment. When a task requires a shared example, the facilitator explains whether participants should edit their own copy or simply observe the reference screen. Clear ownership makes exercise results easier to discuss.
+
+The workshop facilitator guides a particular learning activity. This role introduces the scenario, demonstrates its important steps, answers questions about the exercise, and reviews the result. A facilitator can pause a group activity when its assumptions are unclear. Pausing does not cancel a booking or modify the commercial terms of a trial, which remain outside this role's purpose.
+
+The reception host manages arrivals, wayfinding, equipment handoffs, and the relationship between bookings and participant aliases. This person is usually the first contact for questions about where to go. The host can route a technical question to the appropriate support activity without pretending to know the answer. Correct routing is preferable to offering an unsupported explanation merely to keep a queue moving.
+
+The workspace steward maintains the fictional practice environment. Responsibilities include preparing clean scenarios, identifying the correct exercise version, and restoring a reference copy when a workshop needs to restart. The steward does not silently alter a participant's completed result during a review. If a reset is necessary, the host explains which practice changes will be replaced.
+
+Some tasks involve a handoff between roles. For example, a participant may report an unexpected workspace label to the facilitator, who asks the reception host to confirm the booking. The workspace steward then checks the assignment if the records disagree. This sequence keeps the explanation tied to observed facts instead of assigning blame to the person who first noticed the problem.
+
+A role change should be visible before the associated activity begins. Participants should not infer new authority from sitting at a different table or borrowing another demonstration device. The account overview is the reference for the role currently assigned to the practice profile. If the displayed role does not match the exercise instructions, the host resolves the mismatch first.
+
+Responsibility for an answer follows the subject of the question. A facilitator explains workshop steps, a host clarifies logistics, and a steward explains the prepared workspace state. None of these fictional roles creates a published monthly price or refund policy where the knowledge base contains none. Missing information remains an explicit limitation of the available material.
+
+The purpose of these distinctions is a predictable learning experience. Participants should know who can help, what information to provide, and which changes affect their exercise. An answer can remain friendly and brief while still naming the correct role and setting an accurate expectation about the next action.
+
+06. Demonstration devices
+
+Orion Demo uses a small collection of fictional demonstration devices to support its exercises. These include shared tablets, desktop stations, and presentation screens. The equipment names identify roles within a learning scenario rather than actual product specifications. A participant should not use this guide to infer processor performance, battery capacity, compatibility, or features of any real Huawei device.
+
+A host assigns equipment according to the booked activity and the participant's stated preferences. The assignment includes a device label, a workspace reference, and a return point. These details allow the next host to understand which practice environment was used.
+
+Before practice begins, the participant checks that the assigned alias and workspace are visible. The host demonstrates the controls needed for that particular exercise and explains how to return to the starting view. A device may support many controls that the session does not use. Visitors are not expected to explore every setting to complete a focused learning task.
+
+Shared tablets are used for activities that involve moving between a displayed instruction and an individual practice record. Desktop stations support exercises where a larger workspace is helpful. Presentation screens show the facilitator's reference example. A reference screen is not automatically connected to the participant's saved work, even when both displays contain similarly named records.
+
+The equipment handoff includes a brief condition check conducted by the host. The host notes whether the assigned item is ready for the planned activity and replaces it if necessary. Participants can describe a problem without diagnosing its technical cause. For example, reporting that a control does not respond is more useful than assuming that an entire device needs replacement.
+
+If a device becomes unavailable during a session, the facilitator decides whether the exercise can continue at another station. The participant's progress should be checked before the handoff. Some practice tasks save individual changes immediately, while others use an explicit save action described in their instructions. The host confirms the latest saved state rather than promising that every visible change will follow automatically.
+
+Personal equipment is not required for the standard fictional activities described here. A participant who prefers another input method can discuss available demonstration arrangements with the host. This conversation concerns the setup for the exercise, not a guarantee that every external accessory works with every station. Unspecified compatibility should remain an unanswered detail until the scenario includes it.
+
+At the end of use, equipment returns to the assigned counter. The host checks that the practice session is closed and records the handoff. Returning a device is different from submitting an exercise result, so participants should complete the relevant save or feedback step first. A clean handoff gives the next visitor a clear starting point.
+
+Equipment questions should identify the session and device label when possible. Those details help the host distinguish an individual station problem from a scenario affecting several participants. They also prevent a general answer about tablets or computers from being mistaken for an explanation of the particular demonstration setup.
+
+07. Connections and offline practice
+
+Connectivity in Orion Demo is part of the fictional learning scenario. Some activities use a shared practice service, while others rely on a local copy prepared by the host. The exercise description identifies which arrangement applies. A participant should not assume that every screen requires a network connection or that every saved change is immediately shared with other workspaces.
+
+The host confirms connection readiness before a group exercise begins. Participants first check whether their assigned workspace opens and whether its scenario title matches the instructions. This check is more informative than repeatedly attempting an unrelated action. If the starting workspace is unavailable, the facilitator can decide whether to pause, move stations, or use an appropriate offline exercise.
+
+A connection indicator describes the current demonstration state. It should be read alongside the task instructions rather than treated as a complete diagnosis. A screen can be visible while a later action still depends on the shared service. Conversely, an offline practice copy may remain fully usable for the particular learning objective even when no shared update is possible.
+
+Offline practice is designed for reviewing navigation, reading sample records, and rehearsing individual edits within a prepared copy. It does not promise that all collaborative features remain available. When an activity requires participants to compare changes across workspaces, the facilitator explains whether that comparison should wait. A useful alternative preserves the learning goal without pretending the unavailable feature has already worked.
+
+Before switching to an offline copy, the host notes the current exercise version and last confirmed saved step. The participant then starts from the corresponding prepared state. This process avoids confusing a new local copy with a continuation of every unsaved action. The host should clearly identify which earlier changes are present and which steps need to be repeated.
+
+When the shared service becomes available again, the facilitator decides whether to resume the original activity or finish the local exercise. Moving back immediately is not always necessary. A group close to completing its learning objective may gain more from finishing the current version and comparing results afterward.
+
+The demonstration does not require participants to change a personal router, reveal a private network password, or connect a real customer account. Hosts manage the fictional setup using prepared instructions appropriate to their role. A visitor reporting a connectivity problem should provide the session title and observed behavior, not unrelated personal account information.
+
+Useful reports distinguish failure to open a workspace, failure to save a change, and failure to see another participant's update. These observations point to different parts of the exercise. A short description of the last successful step helps the host identify an appropriate next action. Random adjustments can obscure observations.
+
+After the session, connection issues are included in the host's operational notes when they affected the learning activity. The notes describe the impact, the alternative used, and whether the original task was completed. They do not automatically establish a general service outage or a real product reliability claim.
+
+08. Workshops and guided exercises
+
+An Orion Demo workshop focuses on a defined skill within the fictional environment. Examples include finding a practice request, editing its status, comparing two sample records, and exporting a completed exercise. A workshop is distinct from the seventeen minute orientation. Attending one does not change where orientation takes place or create a new trial entitlement.
+
+Every workshop begins with a scenario description and a result to aim for. The facilitator explains the starting record, the permitted actions, and how participants can recognize completion. This introduction helps distinguish the learning objective from incidental details on the screen. A participant can ask for an unfamiliar term to be explained before attempting the task.
+
+The facilitator first demonstrates the sequence using a reference workspace. Participants observe which record is selected, which field changes, and how the result is confirmed. They then repeat the task in their assigned workspaces. The facilitator's example should not be mistaken for a synchronized copy of every participant's progress or a record already submitted on the group's behalf.
+
+Paired exercises assign separate responsibilities so both participants remain involved. One person may describe the next step while the other operates the practice interface. The pair then exchange roles for a comparable task. Each participant should still understand the action and its result. Completing a task by following unexplained directions is less useful than understanding why the sequence works.
+
+A workshop checkpoint invites participants to explain what changed and what did not. For example, updating a request label may change its appearance without changing its assigned owner. The facilitator uses this distinction to discuss the meaning of a field. Checkpoints are opportunities to clarify concepts rather than tests requiring a memorized phrase.
+
+Participants who finish early can review their result or try an extension activity. They should not alter another person's workspace to demonstrate speed. Extension activities remain within the same fictional dataset and use documented actions. A facilitator can describe a new challenge without inventing capabilities that the demonstration environment does not actually contain.
+
+If an exercise result differs from the reference, the facilitator compares the starting state and sequence before suggesting a reset. A different result may reflect an omitted step, a different record, or an alternate valid interpretation. Identifying the cause helps the participant learn. Resetting immediately can remove the evidence needed to explain what happened.
+
+Workshop completion is recorded against the relevant practice session. It indicates that the participant attempted the agreed activity and reviewed its result. It is not a professional certification, an assessment of employment readiness, or a promise that a real service will behave identically. Any formal qualification would require a separate description beyond this fictional guide.
+
+At the end, participants can note one action they now understand and one question they still have. This brief reflection gives the host a useful basis for recommending another exercise. A specific unresolved question is more valuable than a statement that everything was confusing, because it points directly to the next explanation.
+
+09. Accessibility and participation
+
+Orion Demo is designed to support different ways of participating in a session. A visitor may prefer spoken explanation, written instructions, a larger presentation view, a quieter space, or additional time to practice independently. The host discusses the requested arrangement in terms of the activity. This guide does not assume that one format works equally well for everyone.
+
+Participants can describe what helps them follow an exercise without sharing a medical history or personal diagnosis. Useful requests identify a need, such as repeating a direction, presenting fewer steps at once, or providing written room names. The host records only the arrangement needed for the session. The purpose is to support participation rather than collect unnecessary personal detail.
+
+Written instructions should use a clear sequence and familiar terms. When an unfamiliar label appears on the interface, the facilitator explains its meaning before relying on it repeatedly. A participant should not need to infer the meaning of an abbreviation from context alone. Short explanations can preserve the flow of an activity while making the next step easier to understand.
+
+Spoken instructions should identify the destination or action before adding background information. For example, a host can name the Cedar room before describing the route. During an exercise, the facilitator can name the record and the field before explaining why a change matters.
+
+The Willow room offers a quieter setting for individual review. A participant may use it to repeat instructions or finish a designated practice task when a place is available. A quiet setting does not replace the need for a host when account assignments or workspace recovery are involved. Requests for technical assistance follow the same role distinctions used elsewhere in the guide.
+
+A companion may support interpretation or note taking when included in the booking. The companion's participation does not automatically create a second workspace or authorize changes to another participant's records. If both people want to complete independent exercises, the host allocates separate practice profiles. This arrangement makes the results easier to explain and review.
+
+Participants can ask the facilitator to pause after an important step. The pause gives them time to locate the same control, check the result, or formulate a question. A brief pause during a workshop does not change the documented length of the standard orientation. When more practice is helpful, the host identifies an appropriate opportunity after the introduction.
+
+The guide describes available fictional arrangements but does not guarantee every requested adaptation at every session. The host should state what is available, what needs preparation, and what remains uncertain. A clear limitation is more useful than a vague promise that may not match the participant's needs when they arrive.
+
+Feedback about participation should describe the task and the part that was difficult to follow. It can also identify an explanation or arrangement that worked well. This detail helps the fictional team improve future sessions while avoiding assumptions about other visitors. Successful participation means understanding the activity, not matching another person's pace.
+
+10. Practice data and scenarios
+
+The standard Orion Demo practice dataset is named Silver Birch. This name identifies the prepared collection used for the record handling exercises. It is separate from the Copper Finch welcome booklet and the Lantern Forty Two activation phrase. A participant should use the dataset name when asking which sample records a workshop expects to contain.
+
+Silver Birch contains invented service requests, sample appointment entries, demonstration labels, and fabricated project descriptions. The records do not represent actual customers or transactions. Names inside the dataset are selected to make the exercise understandable without implying a relationship to real people. A realistic looking example remains fictional even when its structure resembles a familiar business activity.
+
+Each workshop uses a defined starting state. The facilitator identifies the scenario title and expected record before participants begin. If a record appears missing, the first check is whether the assigned workspace contains the correct exercise version. Unrelated scenarios may be misleading.
+
+Practice records include a short description explaining why the item exists. Participants should read that description before making changes. A label alone may not contain enough information to choose an appropriate action. The exercise is intended to develop the habit of connecting a decision to the available facts rather than selecting a response simply because its wording sounds familiar.
+
+Some scenarios intentionally include incomplete information. A request may lack a preferred appointment time or an assigned category. The correct response is to identify the missing detail and follow the exercise's documented clarification step. Participants should not fill a gap using assumptions about a real customer, a common industry convention, or another record that happens to look similar.
+
+Other scenarios include two records with related names but different purposes. The facilitator uses these examples to demonstrate careful selection. Participants compare the scenario title, description, and relevant fields before editing. A shared word in two titles does not mean the records are duplicates, and a difference in one field does not automatically indicate an error.
+
+When a participant saves a change, the review focuses on what the action means within the scenario. Changing a status label does not necessarily assign ownership or confirm an appointment. The record's fields have distinct roles described in the workshop. Explaining those distinctions is more important than merely reproducing a reference screenshot.
+
+A prepared dataset can be restored by the workspace steward when a session needs a clean starting point. Restoration replaces the selected practice state with the agreed reference version. It should not happen during a participant's review without an explanation. The host confirms whether any completed result needs to be recorded before the reset proceeds.
+
+Silver Birch is a learning asset, not a source of real operational advice. Its simplified records are useful because the facts remain bounded and inspectable. Questions about a real workflow need real documentation. Within the demo, a good answer identifies the relevant sample facts, acknowledges missing information, and avoids turning an invented scenario into an unsupported claim about the outside world.
+
+11. Support and assistance
+
+Orion Demo support is available Tuesday and Thursday, from ten in the morning to two in the afternoon. These are the documented support days and hours for the fictional environment. They are not a statement about real Huawei support. Workshop hosts may answer exercise questions during an activity, but that does not expand the published demo support schedule.
+
+A support request begins with three useful details: the participant alias, the workspace label, and a description of the last action that succeeded. Participants do not need to provide a real account password or personal customer record. The support worksheet is designed around fictional session information already available to the host.
+
+The worksheet distinguishes questions, access issues, and unexpected exercise results. A question asks how a documented feature or procedure works. An access issue concerns opening the assigned practice environment. An unexpected result describes a difference between the intended action and the saved state.
+
+Support requests move through three visible states: queued, assigned, and reviewed. Queued means the request has been recorded. Assigned means a support host has taken responsibility for investigating it. Reviewed means the host has documented an explanation or next action. Reviewed does not always mean the participant's original assumption was correct or that an undocumented capability has been added.
+
+A useful support explanation names the observed issue, the relevant scenario fact, and the proposed next step. For example, a host may explain that a participant opened a workshop copy instead of the assigned independent exercise. The next step is then to open the correct workspace. This is clearer than describing the entire service as unavailable when the problem is a specific selection.
+
+If the request concerns an incomplete record, the host should distinguish missing information from a failed save. A field that was never provided cannot be recovered by repeating an export or refreshing a screen. The support response identifies the omission and asks for the scenario detail required by the exercise. It does not invent a value to make the record appear complete.
+
+Requests arriving outside the documented support window can be recorded for review during a later support period. This guide does not specify a guaranteed response time. A host should avoid promising an immediate answer simply because a worksheet was submitted successfully. The recorded state communicates what has happened so far without implying a service commitment that the document does not contain.
+
+A participant can add a clarification to an existing request rather than submitting several nearly identical copies. The clarification should explain what changed or provide a missing observation. A different issue affecting another workspace may warrant its own request. The objective is a clear account of each problem, not the largest possible number of submissions.
+
+When a response resolves the question, the participant can mark the explanation as understood. If uncertainty remains, they can identify the specific part that needs clarification. This followup keeps the conversation focused on the scenario and gives the support host something concrete to explain.
+
+12. Troubleshooting practice tasks
+
+Troubleshooting in Orion Demo begins with the visible state of the exercise. Four common labels are Ready, Saved, Pending, and Unavailable. Ready indicates that the prepared task can begin. Saved confirms a recorded practice change. Pending means the demonstrated action has not yet reached its stated completion point. Unavailable means the selected scenario cannot currently be opened as expected.
+
+The first step is to identify the task and workspace. Participants compare the session title, alias, and scenario name with the instructions. A mismatch should be corrected before repeating the action that appeared to fail. This prevents a valid result in the wrong workspace from being mistaken for a broken feature. The host can help interpret a label that remains unfamiliar.
+
+The next step is to describe the expected result precisely. Saying that a record should show a completed status gives the facilitator something to compare with the saved state. Saying that the screen should look better does not identify a specific change.
+
+For a save concern, participants check the relevant record after the confirmation step described in the exercise. They should distinguish the value currently visible in an editing field from the value stored in the completed record. If the exercise uses an explicit save action, entering text alone may not complete the task. The facilitator explains the distinction using the prepared scenario.
+
+For an unavailable workspace, the host first checks assignment and exercise version. If these match, the host considers the connectivity arrangement described for the activity. An offline exercise may have a prepared alternative, while a collaborative task may need to pause. The guide does not assume that refreshing repeatedly will solve every unavailable state or preserve every unsaved change.
+
+For an unexpected permission message, the account overview is the reference for the assigned role. A participant should not borrow another person's profile to continue. The host determines whether the exercise instructions match the role allocation. If a steward needs to adjust the assignment, that change should be explained before the participant resumes the task.
+
+A reset is appropriate when the workshop requires a clean reference state and the current record can no longer illustrate the intended sequence clearly. Before resetting, the facilitator records the observation that prompted the decision and checks whether the participant's completed result needs to be retained. Resetting without explanation can erase the most useful evidence for learning from the exercise.
+
+Troubleshooting notes should separate observation, interpretation, and action. An observation describes what appeared on the screen. An interpretation suggests why that state occurred. An action records what the host or participant did next. Keeping these parts distinct makes it easier to revise an explanation when new information appears.
+
+The final check is whether the original task now reaches its documented result. A successful unrelated action does not prove the initial issue is resolved. If the result remains uncertain, the host records that limitation and routes the question to support rather than describing an unverified improvement as a completed fix.
+
+13. Trial participation
+
+The fictional Orion Demo trial lasts eleven days. It provides a bounded period for exploring the prepared learning environment. The trial is not described as twenty-one days, thirty days, or a calendar month. A participant asking about its duration should receive the documented eleven-day answer rather than a duration borrowed from another product or an assumption in the question.
+
+The trial period begins when the host confirms activation of the assigned trial workspace. The confirmation identifies the relevant participant alias and workspace label. A booking for orientation is not the same event as trial activation. Someone who attends the seventeen minute introduction should not assume that merely entering the Cedar room has started or extended a separate trial.
+
+Trial activities use fictional records and the same role distinctions described elsewhere in this guide. Participants can practice navigation, complete assigned exercises, review saved results, and prepare demonstration exports where the scenario allows them. The trial does not grant unrestricted administrative authority or access to real customer systems. Its purpose is exploration of the documented learning activities.
+
+A participant who wants to repeat an exercise can ask for an appropriate practice copy. Repeating a task does not automatically restart the eleven-day period. The host should distinguish resetting exercise content from changing the trial's duration.
+
+The knowledge base does not specify a monthly price after the trial. It also does not specify a refund policy. These omissions remain true even though the document describes workshops, support arrangements, and equipment handoffs in detail. None of those operational details establishes a charge, a discount, a payment method, or a right to a refund.
+
+The guide does not describe automatic conversion to a paid subscription. A host should therefore avoid telling a participant that a payment will be collected at the end of the trial. Equally, the absence of published pricing does not establish a permanent free service. The accurate answer is limited to the fictional trial period and the information actually supplied.
+
+Before the trial ends, participants can review the exercise results they want to discuss and use the documented export activities when available. A demonstration export is a copy of selected fictional content, not a transfer of a real account. Whether a later visit can use that copy depends on the scenario prepared for the later activity.
+
+Questions about an unavailable workspace near the end of a trial should still begin with the observed state. The host checks the workspace label, the relevant trial record, and the action the participant was trying to perform. It is not necessary to assume that every access issue is caused by expiration merely because the participant remembers starting a trial recently.
+
+A clear closing conversation separates completed learning, remaining questions, and still unspecified commercial details. The participant can leave with a record of what they practiced without being given invented promises about future access. This boundary keeps a useful demonstration from becoming misleading information about a service that does not exist outside the fictional scenario.
+
+14. Privacy and information boundaries
+
+Orion Demo uses fictional information for all standard exercises. Participants work with aliases, invented descriptions, and prepared sample records instead of real customer data. This design keeps the activity focused on understanding a workflow. The privacy conventions in this section describe the demonstration only and should not be read as a legal policy for an actual organization.
+
+The participant alias is the main visible identifier during practice. Hosts use it to connect an exercise result with the correct session allocation. An alias should not need to contain a person's full name, address, private contact details, or employer information. If an alias accidentally reveals more than intended, the host can replace its visible label through the account procedure.
+
+Facilitators should present only the sample fields relevant to the learning objective. A workshop about changing a request status does not require additional personal background about a fictional requester. It also helps participants see which facts genuinely influence the decision they are practicing.
+
+Participants should not copy real messages, customer notes, or personal files into the practice workspace to make an example more realistic. The prepared scenarios already contain the information required by the activities. If a visitor wants to discuss a real workflow, the facilitator can ask them to describe its structure without supplying identifiable records. A separate real deployment would require its own documentation.
+
+A demonstration export contains the selected fictional records and the fields included by its exercise. Before exporting, participants review the selection so they understand what the copy represents. The export should not be described as anonymous merely because the source uses aliases. The simpler accurate statement is that the scenario uses invented data and the file contains the selected demonstration content.
+
+Hosts record operational notes only when they help explain a session or resolve an exercise issue. A useful note might identify a workspace mismatch or the stage where a participant requested clarification. Notes should not speculate about a visitor's personal circumstances. These notes support the activity, not visitor profiling.
+
+Companions and group members may see the reference examples presented during a workshop. That visibility does not authorize them to edit another participant's workspace. The assigned role and exercise instructions still determine the permitted activity. A facilitator should explain whether a shared screen is a common example, an individual result offered for discussion, or a prepared reference state.
+
+If unexpected personal information appears in a practice record, the participant should stop using that record for the exercise and tell the host what they observed. The host identifies an appropriate prepared alternative and routes the issue to the workspace steward. This guide does not specify legal notification obligations or incident deadlines for real organizations.
+
+The central boundary is straightforward: the learning environment contains invented scenarios, and the discussion should remain anchored to those scenarios. Questions about actual privacy law, a real business policy, or a customer's rights require appropriate real documentation. Fictional procedures should not be presented as a substitute for those sources.
+
+15. Workspaces and saved material
+
+An Orion Demo workspace groups the practice material assigned to a participant or a guided exercise. It includes the current scenario, saved records, and any exercise folders prepared by the host. The workspace is a fictional learning container rather than a personal cloud storage account. Its organization is designed to make the result of each action easy to inspect.
+
+The standard folder exercise uses six folders, each containing twelve sample records. These numbers describe that specific prepared exercise, not a universal storage limit. A different workshop can use another scenario described in its instructions. Participants should identify the exercise before answering a question about how many records or folders should appear.
+
+Folder labels describe the role of their contents. A label may distinguish starting examples, completed tasks, or records awaiting review. Moving a practice record between folders changes its organization but does not necessarily change the record's status, owner, or appointment details. Those fields remain separate concepts unless the exercise explicitly connects them.
+
+Saving a record and saving an export are different actions. A saved practice record remains part of the assigned workspace. An export creates a separate file containing selected content. Updating the workspace later does not automatically rewrite a file that was already exported. Participants should understand which object they are looking at before comparing two versions.
+
+A facilitator may provide a clean reference copy for an exercise that needs to be repeated. The copy should have a distinct label so participants do not confuse it with a completed result. A clean copy is useful for practice, but it is not evidence that earlier changes were never made.
+
+A workspace steward manages reference versions used by workshops. When a scenario changes, the steward updates its exercise label and checks that the instructions still describe the fields. Participants should not be asked to reconcile an outdated instruction sheet with a newer reference copy without explanation. Consistent versions support a clear demonstration.
+
+Completed exercise receipts can later be placed in the demonstration archive. A receipt summarizes the activity and its reviewed outcome; it is not a complete backup of every intermediate screen. The archive has its own retention and retrieval conventions described in the final section. These conventions should not be inferred from the eleven-day trial length.
+
+If a participant cannot find a saved item, the host first checks the workspace and exercise version, then the folder relevant to the activity. An item absent from one view may still exist in another prepared location. The host should confirm the object's identity before suggesting that it was deleted or recreating a record that might already be present.
+
+Storage questions are best answered with the smallest useful distinction. A visitor may need to know whether a change was saved, where a completed task appears, or whether an export contains the latest version. These are different questions even when they mention the same record. Identifying the intended object keeps the explanation accurate and avoids unsupported promises about recovery.
+
+16. Exports and exercise summaries
+
+Orion Demo includes export activities so participants can understand the difference between a workspace record and a separate copy. The fictional export exercise offers a plain text summary and a table of selected records. A readable summary supports discussion, while a table makes several comparable fields easier to inspect together.
+
+The plain text summary includes the exercise title, participant alias, reviewed outcome, and any unresolved question recorded for followup. It is intended to be read as a short account of the activity. It does not contain every intermediate action or a complete copy of the workspace. Participants should not describe it as a full backup.
+
+The table export includes only the records selected for the exercise and the fields named in its instructions. A participant should review that selection before creating the file. Choosing a folder may produce a different set from choosing one record. The host demonstrates this distinction with the prepared dataset so visitors can explain what their exported copy contains.
+
+An exported file reflects the selected content at the time the export was created. Later changes in the workspace do not automatically appear in that existing file. If an exercise requires an updated copy, the participant creates another export after confirming the new saved state. The earlier version can remain useful for comparing what changed.
+
+The suggested filename combines the exercise label and the participant alias. This convention helps distinguish one demonstration result from another without using a real person's full name. A filename is a convenience for organization, not proof that the file contains the correct scenario. Participants should open the result and check its title and relevant fields.
+
+The review step compares the exported content with the intended outcome. For a summary, the participant checks the exercise name and the explanation of the result. For a table, they check the selected records and the expected fields. Merely seeing that a file exists does not establish that the correct content was exported.
+
+If a field is absent from the source scenario, exporting should not create a plausible substitute. A missing preferred appointment time remains missing in the copy. This behavior reinforces the difference between formatting information and inventing information. A useful export can clearly show an omission that still needs clarification rather than disguising it with an assumed value.
+
+A facilitator may ask participants to compare a summary and a table. The comparison illustrates how different formats support different questions. The summary explains the activity in context, while the table makes repeated fields easy to compare. Neither format is universally better, and neither should be treated as containing information excluded from its selection.
+
+Exports in this guide contain fictional content only. The exercise does not connect to personal storage accounts or establish a real data transfer process. Questions about sending production records to another organization fall outside the scenario. Within the demo, the key result is understanding what was copied, when the copy was created, and how to verify its contents.
+
+17. Maintenance and prepared versions
+
+Orion Demo maintenance keeps the fictional reference environment consistent with its exercise instructions. The workspace steward reviews the prepared scenarios every Wednesday at four in the afternoon. This scheduled review is separate from participant support, which is available Tuesday and Thursday from ten to two. A maintenance review does not create an additional support window.
+
+The review compares scenario titles, field labels, saved reference states, and workshop instructions. If a task expects a particular record, that record should exist in the prepared version. If a label changes, the associated explanation should change as well. Consistency matters because a participant cannot reliably distinguish an outdated instruction from an incorrect action without additional context.
+
+A proposed scenario revision receives a new exercise version label before it is used in a session. The steward records what changed and which instructions were affected. A version label helps the facilitator explain why two otherwise similar workspaces differ. It should not be used to imply a new commercial product release or a real software compatibility guarantee.
+
+Before a revised scenario replaces an active reference, the steward completes the principal exercise using the revised instructions. The check focuses on the documented starting state, the intended action, and the final result. A successful unrelated task is not enough. The review should establish that the specific activity described to participants remains possible and understandable.
+
+Sessions already underway should not receive an unexplained reference reset. If an urgent correction is necessary, the facilitator pauses the relevant activity, explains the issue, and identifies the state that participants will use next. The host notes whether any reviewed result needs to be retained before a practice copy is replaced.
+
+A temporary scenario problem may be marked as paused in the fictional schedule. Paused means the activity is awaiting a prepared alternative or a corrected reference. It does not necessarily mean that every room, device, or independent exercise is unavailable. The host should name the affected activity so participants can understand the scope of the interruption.
+
+After maintenance, the steward checks that the reference labels used by hosts match the prepared workspaces. Equipment assignments and room bookings are separate records, so a scenario revision does not automatically move a session or change a device allocation. If the activity needs a different arrangement, the appropriate host updates that arrangement explicitly.
+
+Operational notes should describe a concrete difference and its effect on the exercise. Useful examples include an outdated field name, an omitted sample record, or a step whose result was not visible. Broad statements that a scenario was improved are less helpful when a facilitator needs to explain exactly what a returning participant will see.
+
+Maintenance information in this guide concerns fictional learning material. It does not specify service availability guarantees, recovery deadlines, or a real provider's release schedule. The appropriate explanation remains limited to the prepared scenarios, the scheduled review, and the changes actually recorded. Any uncertainty about a current activity should be checked directly with its assigned host.
+
+18. Scheduling and reservations
+
+Orion Demo reservations connect a participant alias with a planned activity, a session reference, and an assigned host. A reservation organizes a visit; it is not a purchase or a contract for a real service. The schedule helps participants understand where to go and helps hosts prepare the correct rooms, practice workspaces, and equipment.
+
+An orientation booking uses a twenty-five minute arrival slot. The orientation itself still lasts seventeen minutes in the Cedar room. The remaining time allows for reception and the transition into the room. The booking slot and the teaching duration answer different questions, so hosts should name the relevant interval instead of substituting one for the other.
+
+A workshop reservation identifies the activity rather than relying only on a room name. Several workshops may use Maple at different times, and a revised schedule may move an activity. Participants should match the session reference and title with the host's information. A room assignment alone does not establish that the correct workshop is taking place inside.
+
+Booking states are provisional, confirmed, and released. Provisional means the requested arrangement is being prepared. Confirmed means the fictional schedule contains an assigned activity and host. Released means the place is no longer reserved for that booking. These states describe the arrangement, not payment status, trial activation, or completion of an exercise.
+
+A participant who needs to change a reservation provides the original session reference and the requested alternative. The host checks the available schedule before confirming the change. Asking for a different time does not guarantee that a place exists. Until the host confirms the revised arrangement, the participant should not assume that the original booking has moved successfully.
+
+A companion place should be included when another person will join the introduction or assist during an exercise. The companion's presence does not automatically require a separate workspace. Independent practice does require an assigned participant profile, so the host should ask what each person intends to do. That distinction supports an accurate equipment and room allocation.
+
+If a participant cannot attend, releasing the booking lets the host update the fictional schedule. This guide does not specify a cancellation charge, reimbursement, or refund policy. Hosts should not invent one based on the existence of a booking state. Releasing a place is an operational action whose commercial consequences are not defined here.
+
+A delayed session should have a clear update identifying the affected activity and the next expected communication from the host. The guide does not promise a fixed delay allowance or an automatic extension of trial access. A useful update explains what is known while distinguishing an estimated arrangement from a confirmed replacement session.
+
+After an activity, its attendance record can indicate whether the participant arrived and whether the introduction or workshop was completed. Attendance is separate from the booking's confirmation. Keeping these records distinct makes later questions easier to answer: a reserved place shows what was planned, while the session record describes what actually happened in the fictional visit.
+
+19. Feedback and learning review
+
+Orion Demo feedback helps the fictional team understand which explanations and exercises were useful. Participants can describe an activity in their own words or use a short review form prepared by the host. Feedback is optional within the standard scenario. It is not a condition for inventing a successful result or claiming that every visitor understood the same material.
+
+The review form separates clarity, usefulness, and remaining questions. Clarity concerns whether the participant could follow the explanation. Usefulness concerns whether the exercise helped them understand a meaningful action or distinction. Remaining questions identify what still needs attention. These categories allow a participant to value an activity while honestly noting that part of it was difficult.
+
+An optional rating uses a scale from one to five, with one meaning unclear and five meaning very clear. The rating concerns the explanation in that session, not the person's ability or a real product's quality. Written context is more informative than the number alone. A short example can explain why a particular step worked well or caused confusion.
+
+Useful feedback names the activity and the moment being discussed. A participant might say that the save confirmation was easy to recognize or that two similar record titles were difficult to distinguish. These observations point to something the team can review and revise.
+
+Facilitators can ask one followup question when a comment is ambiguous. The aim is to understand the observation, not persuade the participant to change their assessment. For example, a host may ask which instruction needed repeating. The answer can reveal whether the issue concerned terminology, pacing, a room arrangement, or a mismatch in the prepared scenario.
+
+Learning review is separate from satisfaction feedback. In a review, the participant explains what changed during an exercise and why that action mattered. A person may understand the workflow while preferring a different presentation style. Another person may enjoy the session while still needing clarification. Treating these as separate observations produces a more accurate picture.
+
+The fictional team groups recurring comments by subject before considering revisions. Several comments about a confusing field label may suggest checking that explanation, while comments about unrelated activities should not be merged merely because they use similar adjectives. Grouping should preserve the meaning of each observation rather than erase important differences between scenarios.
+
+When a revision follows feedback, the host can explain the actual change without claiming that every concern has been resolved. An instruction may have been shortened, a record renamed, or a checkpoint added. The next session provides another opportunity to observe whether the change helps. Improvement is an ongoing learning process rather than a guarantee attached to one edit.
+
+Participants can finish by naming a next question or activity they would find useful. The host checks the documented workshop options before suggesting a followup. Feedback does not automatically reserve a place, activate another trial, or establish a support commitment. It gives the fictional team information that can guide a clear and appropriate next conversation.
+
+20. Archives and retrieval
+
+The Orion Demo archive holds completed exercise receipts for thirteen days after archival. An exercise receipt summarizes the scenario, participant alias, reviewed outcome, and unresolved questions recorded at completion. It is not a complete backup of every intermediate action. The thirteen-day archive period is separate from the eleven-day trial and does not extend trial access.
+
+A host archives a receipt after confirming that it describes the reviewed activity. The receipt should identify the exercise version so a later reader can distinguish it from a similar session. A missing version label can make a correct result difficult to interpret. The host resolves that omission before presenting the receipt as a reliable record of the exercise.
+
+Archived receipts are organized by session reference and participant alias. These details help the host locate the intended item without searching unrelated visitors' activities. A participant asking for an old receipt should identify the exercise or approximate visit context as well.
+
+Retrieval produces a copy of the archived receipt for review. It does not reopen the entire original workspace or restore every temporary change made during practice. If the participant wants to repeat the exercise, the host prepares an appropriate current scenario separately. Reviewing a past result and starting a new activity are distinct operations with different purposes.
+
+If a receipt contains an unresolved question, the host should preserve that uncertainty when discussing it later. The passage of time does not turn an unanswered question into a documented fact. A later explanation can be recorded as an additional review note when supported by the scenario. It should not silently rewrite what the participant originally observed.
+
+After the stated archive period, this fictional guide does not promise that a receipt remains available. A host should check the archive rather than guarantee recovery from a remembered visit. The guide also does not describe indefinite backups or an external restoration service. Missing archived material should be reported as unavailable when that is what the records show.
+
+An archive correction should distinguish a transcription mistake from a change in interpretation. A misspelled alias can be corrected while preserving the connection to the same session. A new interpretation of an exercise result should be recorded as a later note. Keeping that distinction makes the receipt's history understandable to someone who did not attend the original activity.
+
+Before handing over a retrieved copy, the host confirms the session reference and checks that the result belongs to the intended practice profile. The archive uses a fictional verification phrase for this guided retrieval exercise: Amber Kite. This phrase belongs to receipt retrieval only; it is different from the Lantern Forty Two account activation phrase.
+
+A completed retrieval should leave the participant with a clear explanation of the copied receipt, its exercise version, and any remaining uncertainty. The archive supports understanding previous practice. It does not establish real customer history, create commercial entitlements, supply missing pricing terms, or transform this fictional knowledge base into an authoritative source about actual Huawei services.
