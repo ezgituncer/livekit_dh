@@ -26,7 +26,6 @@ export function SuggestedQuestions({
   const [activeId, setActiveId] = useState(SUGGESTED_CATEGORIES[0]?.id);
 
   const loc = (l: Localized) => l[lang as LangCode] ?? l.en;
-  const active = SUGGESTED_CATEGORIES.find((c) => c.id === activeId) ?? SUGGESTED_CATEGORIES[0];
   const pick = (text: string) => {
     void send(text).catch((err) => console.error('Suggested question send failed', err));
     onAsk?.();
@@ -65,21 +64,36 @@ export function SuggestedQuestions({
         })}
       </div>
 
-      {/* Questions for the selected category */}
-      <div className="flex flex-col gap-2">
-        {active?.questions.map((q, i) => (
-          <button
-            key={i}
-            type="button"
-            onClick={() => pick(loc(q))}
-            className="flex items-center justify-between gap-3 rounded-xl border border-(--glass-line) bg-(--glass) px-4 py-2.5 text-start text-sm font-medium text-(--ink) backdrop-blur-md transition-colors hover:border-(--aqua)/55 hover:bg-(--aqua)/10"
-          >
-            <span>{loc(q)}</span>
-            <span className="grid size-6 flex-none place-items-center rounded-full border border-(--aqua)/45 text-xs font-bold text-(--aqua)">
-              ?
-            </span>
-          </button>
-        ))}
+      {/* Shared grid area reserves the tallest category's height to keep tabs steady. */}
+      <div className="grid">
+        {SUGGESTED_CATEGORIES.map((c) => {
+          const isActive = c.id === activeId;
+          return (
+            <div
+              key={c.id}
+              aria-hidden={!isActive}
+              inert={!isActive}
+              className={cn(
+                'col-start-1 row-start-1 flex flex-col gap-2 self-start',
+                !isActive && 'invisible pointer-events-none'
+              )}
+            >
+              {c.questions.map((q, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => pick(loc(q))}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-(--glass-line) bg-(--glass) px-4 py-2.5 text-start text-sm font-medium text-(--ink) backdrop-blur-md transition-colors hover:border-(--aqua)/55 hover:bg-(--aqua)/10"
+                >
+                  <span>{loc(q)}</span>
+                  <span className="grid size-6 flex-none place-items-center rounded-full border border-(--aqua)/45 text-xs font-bold text-(--aqua)">
+                    ?
+                  </span>
+                </button>
+              ))}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
