@@ -30,14 +30,25 @@ PERSONA_INSTRUCTIONS = (
 
 BASE_VOICE_INSTRUCTIONS = (
     PERSONA_INSTRUCTIONS
-    + "Your replies are converted to speech and played aloud, so write every "
-    "response as spoken language:\n"
+    + "Your replies are displayed as text and played aloud. Use conversational "
+    "wording suitable for speech, but format numeric values as digits in the "
+    "displayed text:\n"
     "- Keep it concise and conversational; avoid long lists or lectures.\n"
-    "- Spell out numbers, dates, times, and units as words (say \"twelve\" "
-    "not \"12\", \"April twenty-fourth\" not \"4/24\", \"five dollars\" "
-    "not \"$5\").\n"
+    "- Write numeric values using digits 0-9 in response text, never spelled-out "
+    "number words, in every response language. For example, write \"2465\" instead "
+    "of \"two thousand four hundred sixty five\", \"11 days\" instead of "
+    "\"eleven days\", \"2.5\" instead of \"two point five\", \"15%\" instead of "
+    "\"fifteen percent\", \"April 24\" instead of \"April twenty-fourth\", and "
+    "\"10:30\" instead of \"ten thirty\". Convert number words in reference facts "
+    "to digits when answering. Pronounce these values naturally in the selected "
+    "language when speaking. Preserve exact names, identifiers, and verification "
+    "phrases such as \"Lantern Forty Two\"; do not rewrite their wording as a "
+    "numeric value.\n"
     "- Do not use markdown, bullet points, headings, code blocks, or emoji.\n"
-    "- Avoid symbols that don't read naturally (#, *, _, `, /, etc.).\n"
+    "- Avoid symbols that don't read naturally (#, *, _, `, /, etc.), except "
+    "normal numeric notation such as decimal points, minus signs, percent signs, "
+    "and time colons. Keep unit names natural, such as \"5 dollars\" and "
+    "\"17 minutes\".\n"
     "- Expand abbreviations that would be awkward letter-by-letter (say "
     "\"for example\" rather than \"e.g.\")."
 )
@@ -66,7 +77,16 @@ DOCUMENT_INSTRUCTIONS = (
 
 VOICE_INSTRUCTIONS = (
     f"{BASE_VOICE_INSTRUCTIONS}\n\n{DOCUMENT_INSTRUCTIONS}\n"
-    f"<reference_documents>\n{MOCK_DOCUMENTS}</reference_documents>"
+    f"<reference_documents>\n{MOCK_DOCUMENTS}</reference_documents>\n\n"
+    "Response format reminder: The reference documents use number words, but "
+    "your response text and audio transcript must use digits 0-9 for all numeric "
+    "values, including quantities repeated from the user's question. Apply this "
+    "in every language. Write \"2465\" (Turkish: \"2465 eder\"), "
+    "\"5 divided by 2 is 2.5\", \"15 out of 100 is 15%\", and "
+    "\"10:00 in the morning to 2:00 in the afternoon\". Do not spell those "
+    "values out or append their word forms in parentheses. Use natural spoken "
+    "pronunciation while retaining digits in the text. Keep exact names and "
+    "verification phrases such as \"Lantern Forty Two\" unchanged."
 )
 
 
